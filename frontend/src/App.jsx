@@ -1,122 +1,120 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { HashRouter as Router, Routes, Route, NavLink } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { getHealth } from './api/api';
+import Dashboard from './pages/Dashboard';
+import Enroll from './pages/Enroll';
+import VerifyLive from './pages/VerifyLive';
+import VerifyBatch from './pages/VerifyBatch';
+import './App.css';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [health, setHealth] = useState({
+    status: 'checking',
+    modelLoaded: false,
+    profileCount: 0
+  });
+
+  const checkHealthStatus = async () => {
+    try {
+      const status = await getHealth();
+      setHealth({
+        status: status.status,
+        modelLoaded: status.modelLoaded,
+        profileCount: status.profileCount
+      });
+    } catch (err) {
+      setHealth({
+        status: 'offline',
+        modelLoaded: false,
+        profileCount: 0
+      });
+    }
+  };
+
+  useEffect(() => {
+    checkHealthStatus();
+    const interval = setInterval(checkHealthStatus, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const getStatusBadge = () => {
+    if (health.status === 'healthy') {
+      return (
+        <div className="system-status-indicator healthy" title="System is fully operational">
+          <span className="status-dot"></span>
+          <span className="status-label">Online</span>
+        </div>
+      );
+    } else if (health.status === 'unhealthy') {
+      return (
+        <div className="system-status-indicator loading" title="Model is loading or unloaded">
+          <span className="status-dot"></span>
+          <span className="status-label">Model Unloaded</span>
+        </div>
+      );
+    } else {
+      return (
+        <div className="system-status-indicator offline" title="Backend server cannot be reached">
+          <span className="status-dot"></span>
+          <span className="status-label">Offline</span>
+        </div>
+      );
+    }
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <Router>
+      <header className="app-header">
+        <div className="header-brand" onClick={() => window.location.href = '#/'}>
+          <div className="logo-mark">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M12 2v20M17 5v14M22 9v6M7 7v10M2 10v4" strokeWidth="2.5" strokeLinecap="round"/>
+            </svg>
+          </div>
+          <div className="brand-text">
+            <h2>VoicePrint</h2>
+            <span>Biometric Engine</span>
+          </div>
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
 
-      <div className="ticks"></div>
+        <nav className="header-nav">
+          <NavLink to="/" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+            Dashboard
+          </NavLink>
+          <NavLink to="/enroll" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+            Enroll
+          </NavLink>
+          <NavLink to="/verify-live" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+            Verify Live
+          </NavLink>
+          <NavLink to="/verify-batch" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+            Verify Batch
+          </NavLink>
+        </nav>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+        <div className="header-status">
+          {getStatusBadge()}
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+      </header>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      <main className="app-main">
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/enroll" element={<Enroll />} />
+          <Route path="/verify-live" element={<VerifyLive />} />
+          <Route path="/verify-batch" element={<VerifyBatch />} />
+        </Routes>
+      </main>
+
+      <footer className="app-footer">
+        <p>© 2026 VoicePrint Local Biometric Authentication. All ML inference occurs offline.</p>
+        <div className="footer-stats">
+          <span>Active Profiles: <strong>{health.profileCount}</strong></span>
+          <span>Model: <strong>ECAPA-TDNN (192-dim)</strong></span>
+        </div>
+      </footer>
+    </Router>
+  );
 }
 
-export default App
+export default App;

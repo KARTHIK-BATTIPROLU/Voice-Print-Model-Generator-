@@ -1,0 +1,15 @@
+{
+  "total_files": 171,
+  "mean_similarity": 0.28118560293977385,
+  "std_similarity": 0.17751416113568913,
+  "min_similarity": -0.19997979700565338,
+  "max_similarity": 0.9187759757041931,
+  "num_groups": 4,
+  "group_sizes": [
+    5,
+    6,
+    9,
+    5
+  ],
+  "unassigned_count": 146
+}

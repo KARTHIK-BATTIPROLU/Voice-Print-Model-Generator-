@@ -75,7 +75,7 @@ def test_model_properties():
     model = ModelLoader.get_instance()
     
     # Verify model is an EncoderClassifier instance
-    from speechbrain.pretrained import EncoderClassifier
+    from speechbrain.inference import EncoderClassifier
     assert isinstance(model, EncoderClassifier), "Model should be EncoderClassifier instance"
     print("✓ Model is correct type (EncoderClassifier)")
     

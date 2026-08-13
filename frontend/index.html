@@ -1,20 +1,592 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
-      rel="stylesheet"
-    />
-    <title>VoicePrint - Voice Biometric Platform</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASTA3 Voice Biometric System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .status-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-left: 5px solid #667eea;
+        }
+
+        .status-card h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .status-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-label {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .status-value {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .status-value.success {
+            color: #28a745;
+        }
+
+        .status-value.error {
+            color: #dc3545;
+        }
+
+        .upload-section {
+            margin-bottom: 30px;
+        }
+
+        .upload-section h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .profile-select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            margin-bottom: 20px;
+            transition: border-color 0.3s;
+        }
+
+        .profile-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-label {
+            display: block;
+            padding: 20px;
+            background: #f8f9fa;
+            border: 2px dashed #667eea;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-label:hover {
+            background: #e9ecef;
+            border-color: #764ba2;
+        }
+
+        .file-label.has-file {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+
+        .verify-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .verify-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .verify-btn:active {
+            transform: translateY(0);
+        }
+
+        .verify-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 30px;
+            display: none;
+        }
+
+        .result-card.show {
+            display: block;
+            animation: slideIn 0.5s;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-card.verified {
+            background: #d4edda;
+            border-left: 5px solid #28a745;
+        }
+
+        .result-card.rejected {
+            background: #f8d7da;
+            border-left: 5px solid #dc3545;
+        }
+
+        .result-title {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .result-title.verified {
+            color: #28a745;
+        }
+
+        .result-title.rejected {
+            color: #dc3545;
+        }
+
+        .result-details {
+            font-size: 1.1em;
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .result-row:last-child {
+            border-bottom: none;
+        }
+
+        .score-bar {
+            width: 100%;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .score-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+            transition: width 1s ease-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .score-fill.low {
+            background: linear-gradient(90deg, #dc3545 0%, #c82333 100%);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .badge.success {
+            background: #28a745;
+            color: white;
+        }
+
+        .badge.error {
+            background: #dc3545;
+            color: white;
+        }
+
+        .samples-info {
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+
+        .samples-info h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .samples-info p {
+            color: #856404;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎤 ASTA3 Voice Biometric</h1>
+            <p>Speaker Verification System</p>
+        </div>
+
+        <div class="content">
+            <!-- System Status -->
+            <div class="status-card">
+                <h3>System Status</h3>
+                <div id="systemStatus">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading system status...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Verification Section -->
+            <div class="upload-section">
+                <h3>Verify Audio Sample</h3>
+                
+                <select class="profile-select" id="profileSelect">
+                    <option value="">Select Profile...</option>
+                </select>
+
+                <div class="file-input-wrapper">
+                    <input type="file" id="audioFile" class="file-input" accept=".wav,audio/wav">
+                    <label for="audioFile" class="file-label" id="fileLabel">
+                        📁 Click to select WAV file<br>
+                        <small>Supported: .wav files only</small>
+                    </label>
+                </div>
+
+                <button class="verify-btn" id="verifyBtn" disabled>
+                    🔍 Verify Audio
+                </button>
+            </div>
+
+            <!-- Result Card -->
+            <div class="result-card" id="resultCard">
+                <!-- Results will be displayed here -->
+            </div>
+
+            <!-- Samples Info -->
+            <div class="samples-info">
+                <h4>ℹ️ Testing Samples</h4>
+                <p>
+                    <strong>Training samples (will VERIFY):</strong> sample_0062.wav, sample_0060.wav, sample_0067.wav, sample_0061.wav, sample_0063.wav, and 15 more.<br>
+                    <strong>Other samples (will REJECT):</strong> sample_0004.wav, sample_0005.wav, etc.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+        let selectedFile = null;
+
+        // Load system status
+        async function loadSystemStatus() {
+            try {
+                const response = await fetch(`${API_URL}/api/health`);
+                const health = await response.json();
+
+                const profilesResponse = await fetch(`${API_URL}/api/profiles`);
+                const profilesData = await profilesResponse.json();
+
+                const statusHtml = `
+                    <div class="status-item">
+                        <span class="status-label">Server Status:</span>
+                        <span class="status-value success">${health.status.toUpperCase()}</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Model Loaded:</span>
+                        <span class="status-value success">${health.model_loaded ? 'YES' : 'NO'}</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Profiles Available:</span>
+                        <span class="status-value">${health.profile_count}</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Uptime:</span>
+                        <span class="status-value">${Math.floor(health.uptime)} seconds</span>
+                    </div>
+                `;
+
+                document.getElementById('systemStatus').innerHTML = statusHtml;
+
+                // Populate profile dropdown
+                const profileSelect = document.getElementById('profileSelect');
+                profilesData.profiles.forEach(profile => {
+                    const option = document.createElement('option');
+                    option.value = profile.name;
+                    option.textContent = `${profile.name} (${profile.metadata.sample_count} samples)`;
+                    profileSelect.appendChild(option);
+                });
+
+                // Auto-select ASTA3 if available
+                if (profilesData.profiles.find(p => p.name === 'ASTA3')) {
+                    profileSelect.value = 'ASTA3';
+                }
+
+            } catch (error) {
+                document.getElementById('systemStatus').innerHTML = `
+                    <div class="status-item">
+                        <span class="status-label">Status:</span>
+                        <span class="status-value error">ERROR - Server not responding</span>
+                    </div>
+                    <p style="color: #dc3545; margin-top: 10px;">
+                        Make sure the backend server is running at ${API_URL}
+                    </p>
+                `;
+            }
+        }
+
+        // Handle file selection
+        document.getElementById('audioFile').addEventListener('change', function(e) {
+            selectedFile = e.target.files[0];
+            const fileLabel = document.getElementById('fileLabel');
+            const verifyBtn = document.getElementById('verifyBtn');
+            const profileSelect = document.getElementById('profileSelect');
+
+            if (selectedFile) {
+                fileLabel.classList.add('has-file');
+                fileLabel.innerHTML = `
+                    ✅ ${selectedFile.name}<br>
+                    <small>Size: ${(selectedFile.size / 1024).toFixed(2)} KB</small>
+                `;
+                
+                if (profileSelect.value) {
+                    verifyBtn.disabled = false;
+                }
+            } else {
+                fileLabel.classList.remove('has-file');
+                fileLabel.innerHTML = `
+                    📁 Click to select WAV file<br>
+                    <small>Supported: .wav files only</small>
+                `;
+                verifyBtn.disabled = true;
+            }
+        });
+
+        // Handle profile selection
+        document.getElementById('profileSelect').addEventListener('change', function() {
+            const verifyBtn = document.getElementById('verifyBtn');
+            if (this.value && selectedFile) {
+                verifyBtn.disabled = false;
+            } else {
+                verifyBtn.disabled = true;
+            }
+        });
+
+        // Handle verification
+        document.getElementById('verifyBtn').addEventListener('click', async function() {
+            const profileSelect = document.getElementById('profileSelect');
+            const resultCard = document.getElementById('resultCard');
+            
+            if (!selectedFile || !profileSelect.value) {
+                alert('Please select both a profile and an audio file');
+                return;
+            }
+
+            // Show loading
+            resultCard.className = 'result-card show';
+            resultCard.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Verifying audio sample...</p>
+                </div>
+            `;
+
+            try {
+                const formData = new FormData();
+                formData.append('profile_name', profileSelect.value);
+                formData.append('audio_file', selectedFile);
+
+                const response = await fetch(`${API_URL}/api/verify`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                // Display result
+                displayResult(result);
+
+            } catch (error) {
+                resultCard.className = 'result-card show rejected';
+                resultCard.innerHTML = `
+                    <div class="result-title rejected">
+                        ❌ Error
+                    </div>
+                    <p style="color: #721c24;">
+                        Failed to verify audio: ${error.message}
+                    </p>
+                `;
+            }
+        });
+
+        function displayResult(result) {
+            const resultCard = document.getElementById('resultCard');
+            const score = result.similarity_score;
+            const scorePercent = (score * 100).toFixed(1);
+            const verified = result.verified;
+
+            resultCard.className = `result-card show ${verified ? 'verified' : 'rejected'}`;
+
+            const icon = verified ? '✅' : '❌';
+            const statusText = verified ? 'VERIFIED' : 'REJECTED';
+            const statusClass = verified ? 'verified' : 'rejected';
+            const message = verified 
+                ? 'Speaker identity confirmed! Access granted.' 
+                : 'Speaker identity does not match. Access denied.';
+
+            const scoreFillClass = score >= result.threshold ? '' : 'low';
+
+            resultCard.innerHTML = `
+                <div class="result-title ${statusClass}">
+                    ${icon} ${statusText}
+                </div>
+                <p style="margin-bottom: 20px; font-size: 1.1em;">
+                    ${message}
+                </p>
+                
+                <div class="result-details">
+                    <div class="result-row">
+                        <span><strong>Profile:</strong></span>
+                        <span>${result.profile_name}</span>
+                    </div>
+                    <div class="result-row">
+                        <span><strong>Similarity Score:</strong></span>
+                        <span><strong>${score.toFixed(4)}</strong> (${scorePercent}%)</span>
+                    </div>
+                    <div class="result-row">
+                        <span><strong>Threshold:</strong></span>
+                        <span>${result.threshold.toFixed(4)}</span>
+                    </div>
+                </div>
+
+                <div class="score-bar">
+                    <div class="score-fill ${scoreFillClass}" style="width: ${scorePercent}%">
+                        ${scorePercent}%
+                    </div>
+                </div>
+
+                <p style="margin-top: 15px; font-size: 0.9em; color: #666;">
+                    ${verified 
+                        ? `Score ${score.toFixed(4)} is above threshold ${result.threshold.toFixed(4)}` 
+                        : `Score ${score.toFixed(4)} is below threshold ${result.threshold.toFixed(4)}`}
+                </p>
+            `;
+        }
+
+        // Load status on page load
+        loadSystemStatus();
+
+        // Refresh status every 10 seconds
+        setInterval(loadSystemStatus, 10000);
+    </script>
+</body>
 </html>

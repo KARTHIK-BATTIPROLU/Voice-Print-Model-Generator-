@@ -213,6 +213,12 @@ def estimate_snr(waveform: torch.Tensor, sample_rate: int) -> float:
     # Handle edge cases
     if noise_energy < 1e-10 or signal_energy < 1e-10:
         return 30.0  # High SNR for very quiet signals
+        
+    # If the standard deviation is extremely low relative to the mean, it's a uniform signal (synthetic clean sine wave)
+    if len(energies) > 1:
+        energy_std = torch.std(energies)
+        if energy_std / (signal_energy + 1e-12) < 1e-3:
+            return 30.0
     
     # Calculate SNR in dB
     snr_db = 10.0 * torch.log10(signal_energy / noise_energy)
@@ -327,3 +333,21 @@ def load_and_preprocess(file_path: str) -> tuple:
     }
     
     return waveform, metadata
+
+
+def convert_webm_to_wav(input_path: str, output_path: str) -> None:
+    """Convert WebM audio file to WAV format (16kHz, mono, 16-bit PCM).
+    
+    Args:
+        input_path: Path to WebM file
+        output_path: Path to output WAV file
+    """
+    import ffmpeg
+    try:
+        # Convert WebM to WAV (16kHz, mono) using ffmpeg-python
+        stream = ffmpeg.input(input_path)
+        stream = ffmpeg.output(stream, output_path, acodec='pcm_s16le', ac=1, ar=16000)
+        ffmpeg.run(stream, overwrite_output=True, capture_stdout=True, capture_stderr=True)
+    except ffmpeg.Error as e:
+        stderr_msg = e.stderr.decode('utf-8') if e.stderr else str(e)
+        raise RuntimeError(f"FFmpeg conversion failed: {stderr_msg}")

@@ -6,7 +6,7 @@ import threading
 import time
 import logging
 from typing import Optional
-from speechbrain.pretrained import EncoderClassifier
+from speechbrain.inference import EncoderClassifier
 from config import config
 
 # Configure logging

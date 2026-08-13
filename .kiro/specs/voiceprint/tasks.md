@@ -93,7 +93,7 @@ This implementation plan follows a 4-stage approach to build a fully local voice
     - _Requirements: 5.6_
 
 - [ ] 4. Implement Embedding Engine
-  - [~] 4.1 Create embedding extraction in `backend/embedding.py`
+  - [ ] 4.1 Create embedding extraction in `backend/embedding.py`
     - Implement `extract_embedding(waveform, sample_rate)` using ModelLoader
     - Return 192-dimensional numpy array
     - Implement `normalize_embedding(embedding)` with L2 normalization
@@ -121,7 +121,7 @@ This implementation plan follows a 4-stage approach to build a fully local voice
     - Test that averaged voiceprint equals element-wise mean
     - _Requirements: 1.8_
   
-  - [~] 4.5 Create similarity and statistics functions
+  - [ ] 4.5 Create similarity and statistics functions
     - Implement `compute_cosine_similarity(embedding_a, embedding_b)` as dot product
     - Implement `detect_outliers(embeddings, threshold=2.5)` using z-score method
     - Implement `compute_intra_class_stats(embeddings)` for mean, std, min, max similarity
@@ -157,7 +157,7 @@ This implementation plan follows a 4-stage approach to build a fully local voice
     - _Requirements: 1.9_
 
 - [ ] 5. Implement Profile Store
-  - [~] 5.1 Create ProfileStore class in `backend/profile_store.py`
+  - [ ] 5.1 Create ProfileStore class in `backend/profile_store.py`
     - Implement `__init__(base_path="profiles")` to set base directory
     - Implement `create_profile(name, voiceprint, metadata)` with atomic write
     - Write voiceprint to `.npy` file and metadata to `meta.json`
@@ -197,7 +197,7 @@ This implementation plan follows a 4-stage approach to build a fully local voice
     - _Requirements: 6.5, 6.9_
 
 - [ ] 6. Implement API routes
-  - [~] 6.1 Create enrollment endpoint in `backend/main.py`
+  - [ ] 6.1 Create enrollment endpoint in `backend/main.py`
     - Implement `POST /api/enroll` with multipart form data
     - Accept profile_name and 10-500 WAV files
     - Process files: validate, resample, extract embeddings, average, detect outliers
@@ -212,7 +212,7 @@ This implementation plan follows a 4-stage approach to build a fully local voice
     - Test that request accepted iff 10 ≤ N ≤ 500
     - _Requirements: 1.1_
   
-  - [~] 6.3 Create verification endpoints
+  - [ ] 6.3 Create verification endpoints
     - Implement `POST /api/verify` for single audio verification
     - Accept profile_name and audio file
     - Extract embedding, compute similarity, apply threshold
@@ -235,20 +235,20 @@ This implementation plan follows a 4-stage approach to build a fully local voice
     - Test that results contain exactly N entries with matching filenames
     - _Requirements: 3.1_
   
-  - [~] 6.6 Create profile management endpoints
+  - [ ] 6.6 Create profile management endpoints
     - Implement `GET /api/profiles` to list all profiles
     - Implement `GET /api/profiles/{name}` to get single profile
     - Implement `DELETE /api/profiles/{name}` to delete profile
     - Implement `PATCH /api/profiles/{name}/threshold` to update threshold
     - _Requirements: 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8_
   
-  - [~] 6.7 Create health check endpoint
+  - [ ] 6.7 Create health check endpoint
     - Implement `GET /api/health` endpoint
     - Check model loaded status using ModelLoader.is_loaded()
     - Return profile count and system uptime
     - _Requirements: 4.4_
 
-- [~] 7. Checkpoint - Backend Core Complete
+- [ ] 7. Checkpoint - Backend Core Complete
   - Run all backend tests (unit + property tests)
   - Verify model loads successfully
   - Test enrollment with sample WAV files
@@ -280,7 +280,7 @@ This implementation plan follows a 4-stage approach to build a fully local voice
     - Create `WaveformRing.jsx` component using Web Audio API AnalyserNode
     - _Requirements: 7.6, 7.7, 2.2, 3.3_
 
-- [~] 10. Implement API Client
+- [ ] 10. Implement API Client
   - Create `src/api/api.js` with all API functions
   - Implement profile management: `getProfiles()`, `getProfile(name)`, `deleteProfile(name)`, `updateProfileThreshold(name, threshold)`
   - Implement enrollment: `enrollProfile(name, files, onProgress)`
@@ -291,7 +291,7 @@ This implementation plan follows a 4-stage approach to build a fully local voice
   - Add timeout handling: 30s for enrollment, 10s for verification
   - _Requirements: 8.4, 8.7_
 
-- [~] 11. Implement Dashboard page
+- [ ] 11. Implement Dashboard page
   - Create `src/pages/Dashboard.jsx`
   - Fetch profiles using `getProfiles()` on mount
   - Display profile grid (1/2/3 columns responsive)
@@ -301,7 +301,7 @@ This implementation plan follows a 4-stage approach to build a fully local voice
   - Show empty state when no profiles exist
   - _Requirements: 6.7, 6.8, 7.10_
 
-- [~] 12. Implement Enroll page
+- [ ] 12. Implement Enroll page
   - Create `src/pages/Enroll.jsx`
   - Add profile name input with validation (alphanumeric + allowed chars)
   - Add folder upload button (accept .wav files)
@@ -312,7 +312,7 @@ This implementation plan follows a 4-stage approach to build a fully local voice
   - Handle errors with user-friendly messages
   - _Requirements: 1.1, 7.6, 7.7, 10.2, 10.9_
 
-- [~] 13. Implement Verify Live page
+- [ ] 13. Implement Verify Live page
   - Create `src/pages/VerifyLive.jsx`
   - Add profile selector dropdown populated from `getProfiles()`
   - Implement microphone capture using Web Audio API
@@ -352,7 +352,7 @@ This implementation plan follows a 4-stage approach to build a fully local voice
     - Test that parsed data structure equals original (filenames, scores, status)
     - _Requirements: 3.6, 3.7_
 
-- [~] 15. Implement routing and navigation
+- [ ] 15. Implement routing and navigation
   - Create `src/App.jsx` with React Router
   - Set up routes: `/` (Dashboard), `/enroll`, `/verify/live`, `/verify/batch`
   - Create navigation header with links to all pages
@@ -360,7 +360,7 @@ This implementation plan follows a 4-stage approach to build a fully local voice
   - Ensure keyboard navigation works for all routes
   - _Requirements: 7.10, 7.11_
 
-- [~] 16. Checkpoint - Frontend Complete
+- [ ] 16. Checkpoint - Frontend Complete
   - Run frontend dev server with `npm run dev`
   - Test all pages render correctly
   - Verify design system colors and typography
@@ -371,19 +371,19 @@ This implementation plan follows a 4-stage approach to build a fully local voice
 ### Stage 3: Integration
 
 - [ ] 17. Implement WebSocket progress streaming
-  - [~] 17.1 Add WebSocket endpoint in backend
+  - [ ] 17.1 Add WebSocket endpoint in backend
     - Implement `WebSocket /ws/progress/{session_id}` in `backend/main.py`
     - Send progress messages: `{"type": "progress", "current": int, "total": int, "percentage": float}`
     - Send completion message: `{"type": "complete", "success": bool, "result": dict}`
     - _Requirements: 1.13, 8.5_
   
-  - [~] 17.2 Integrate WebSocket in enrollment
+  - [ ] 17.2 Integrate WebSocket in enrollment
     - Modify enrollment endpoint to trigger WebSocket for >30 files
     - Connect WebSocket in `Enroll.jsx` during upload
     - Update ProgressRing with real-time percentage
     - _Requirements: 1.13, 8.5_
 
-- [~] 18. Implement WebM to WAV conversion
+- [ ] 18. Implement WebM to WAV conversion
   - Add ffmpeg-python to backend requirements
   - Create conversion utility in `backend/audio_utils.py`
   - Implement `convert_webm_to_wav(webm_path)` function
@@ -405,7 +405,7 @@ This implementation plan follows a 4-stage approach to build a fully local voice
     - Test that JSON formatting → parsing preserves all fields
     - _Requirements: 12.4_
 
-- [~] 20. Create unified start script
+- [ ] 20. Create unified start script
   - Create `start.sh` bash script in project root
   - Start backend: `cd backend && uvicorn main:app --reload --port 8000`
   - Start frontend: `cd frontend && npm run dev`
@@ -413,7 +413,7 @@ This implementation plan follows a 4-stage approach to build a fully local voice
   - Add trap to kill both processes on Ctrl+C
   - _Requirements: 8.1_
 
-- [~] 21. Configure CORS and API integration
+- [ ] 21. Configure CORS and API integration
   - Add CORS middleware to FastAPI in `backend/main.py`
   - Allow origins: `http://localhost:5173` (Vite dev server)
   - Allow methods: GET, POST, DELETE, PATCH
@@ -421,14 +421,14 @@ This implementation plan follows a 4-stage approach to build a fully local voice
   - Test API calls from frontend to backend
   - _Requirements: 8.8_
 
-- [~] 22. Implement threshold override endpoint
+- [ ] 22. Implement threshold override endpoint
   - Implement profile-specific threshold in verification
   - Modify `/api/verify` to check profile metadata for custom threshold
   - Fall back to default threshold (0.7) if not set
   - Test threshold override with different profiles
   - _Requirements: 9.4, 9.5_
 
-- [~] 23. Checkpoint - Integration Complete
+- [ ] 23. Checkpoint - Integration Complete
   - Start both servers using `start.sh`
   - Test complete enrollment flow: upload → progress → result
   - Test live verification: record → verify → result
@@ -440,7 +440,7 @@ This implementation plan follows a 4-stage approach to build a fully local voice
 ### Stage 4: Hardening
 
 - [ ] 24. Implement comprehensive error handling
-  - [~] 24.1 Add validation error handlers
+  - [ ] 24.1 Add validation error handlers
     - "Invalid audio format" for non-WAV files
     - "Minimum 10 samples required" for insufficient enrollment
     - "Audio must be at least 1.5 seconds" for short duration
@@ -448,20 +448,20 @@ This implementation plan follows a 4-stage approach to build a fully local voice
     - "File size exceeds maximum" for large files
     - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5_
   
-  - [~] 24.2 Add system error handlers
+  - [ ] 24.2 Add system error handlers
     - "Model initialization failed" for model loading errors
     - Generic error messages for unexpected failures
     - Log detailed errors server-side only
     - Sanitize error responses to avoid information disclosure
     - _Requirements: 10.6, 10.7_
   
-  - [~] 24.3 Add resource management
+  - [ ] 24.3 Add resource management
     - Release temporary resources after batch verification
     - Implement proper cleanup in all endpoints
     - Add request timeouts: 300s enrollment, 30s verification
     - _Requirements: 11.6_
 
-- [~] 25. Implement input validation and security
+- [ ] 25. Implement input validation and security
   - Add profile name validation: regex `^[a-zA-Z0-9_-]{1,64}$`
   - Add path traversal prevention in ProfileStore
   - Validate threshold range: [0.0, 1.0]
@@ -502,7 +502,7 @@ This implementation plan follows a 4-stage approach to build a fully local voice
     - Test that pairwise similarities ≥ 0.95
     - _Requirements: 13.7_
 
-- [~] 28. Add accessibility improvements
+- [ ] 28. Add accessibility improvements
   - Add ARIA labels to all interactive elements
   - Ensure focus indicators visible on all buttons and inputs
   - Add keyboard shortcuts: Enter to submit forms, Esc to close modals
@@ -511,7 +511,7 @@ This implementation plan follows a 4-stage approach to build a fully local voice
   - Add form input labels for all fields
   - _Requirements: 7.10, 7.11_
 
-- [~] 29. Write end-to-end integration tests
+- [ ] 29. Write end-to-end integration tests
   - Test complete enrollment: 50 WAV files → profile created
   - Test live verification: enroll → verify with same speaker
   - Test batch verification: enroll → batch verify → CSV export
@@ -520,7 +520,7 @@ This implementation plan follows a 4-stage approach to build a fully local voice
   - Verify zero cloud dependencies: disconnect network, test all features
   - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.5, 9.1, 9.2_
 
-- [~] 30. Final checkpoint and documentation
+- [ ] 30. Final checkpoint and documentation
   - Run full test suite: all unit tests, property tests (100 iterations), integration tests
   - Verify all error messages match error handling matrix
   - Test responsive design on mobile (375px) and desktop (1920px)
