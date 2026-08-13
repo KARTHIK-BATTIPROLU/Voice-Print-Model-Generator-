@@ -1,0 +1,35 @@
+/* ProgressRing Component Styles */
+
+.progress-ring-container {
+  position: relative;
+  display: inline-block;
+}
+
+.progress-ring-svg {
+  display: block;
+}
+
+.progress-ring-background {
+  opacity: 0.2;
+}
+
+.progress-ring-progress {
+  transition: stroke-dashoffset 0.3s ease-in-out;
+}
+
+.progress-ring-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.progress-percentage {
+  font-family: var(--font-mono);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--text-primary);
+}

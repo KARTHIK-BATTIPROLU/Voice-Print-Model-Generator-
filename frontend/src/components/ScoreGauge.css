@@ -1,0 +1,43 @@
+/* ScoreGauge Component Styles */
+
+.score-gauge-container {
+  display: inline-block;
+  position: relative;
+}
+
+.score-gauge-svg {
+  display: block;
+}
+
+.gauge-arc-background {
+  opacity: 0.2;
+}
+
+.gauge-arc-gradient {
+  opacity: 0.8;
+}
+
+.gauge-threshold-line {
+  stroke-dasharray: 4, 4;
+  opacity: 0.8;
+}
+
+.gauge-needle {
+  filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.5));
+  transition: all 0.5s ease-out;
+}
+
+.gauge-needle-center {
+  filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.5));
+}
+
+.gauge-label {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+.gauge-score-text {
+  font-family: var(--font-mono);
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
