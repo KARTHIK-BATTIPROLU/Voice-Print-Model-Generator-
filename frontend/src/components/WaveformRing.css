@@ -1,0 +1,36 @@
+/* WaveformRing Component Styles */
+
+.waveform-ring-container {
+  position: relative;
+  display: inline-block;
+}
+
+.waveform-ring-canvas {
+  display: block;
+  background: transparent;
+}
+
+.waveform-ring-placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-md);
+  color: var(--text-secondary);
+}
+
+.waveform-ring-placeholder svg {
+  opacity: 0.5;
+}
+
+.waveform-ring-placeholder p {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  margin: 0;
+  text-align: center;
+}

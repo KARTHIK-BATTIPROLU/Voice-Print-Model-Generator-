@@ -1,0 +1,66 @@
+/* VoicePrint Design System - CSS Custom Properties */
+
+:root {
+  /* ========== Color Palette ========== */
+  
+  /* Background Colors */
+  --background: #0A0A0F;          /* Deep space black - Primary background */
+  --surface: #16161F;              /* Card background */
+  --surface-hover: #1F1F2E;        /* Hover state for interactive surfaces */
+  
+  /* Accent Colors */
+  --accent: #6C63FF;               /* Electric violet - Primary accent */
+  --accent-hover: #5A52D5;         /* Darker violet - Hover state */
+  
+  /* Text Colors */
+  --text-primary: #E8E8F0;         /* Almost white - Primary text */
+  --text-secondary: #9999AA;       /* Muted gray - Secondary text */
+  
+  /* Status Colors */
+  --success: #00D9A3;              /* Teal green - Success state */
+  --error: #FF6B6B;                /* Coral red - Error state */
+  --warning: #FFB84D;              /* Amber yellow - Warning state */
+  
+  /* Border Colors */
+  --border: #2A2A3A;               /* Subtle border color */
+  
+  
+  /* ========== Typography ========== */
+  
+  /* Font Families */
+  --font-display: 'Space Grotesk', sans-serif;  /* Headers and display text */
+  --font-body: 'Inter', sans-serif;              /* Body text */
+  --font-mono: 'JetBrains Mono', monospace;      /* Technical information */
+  
+  /* Font Sizes */
+  --text-xl: 2rem;       /* 32px - Page titles */
+  --text-lg: 1.5rem;     /* 24px - Section headers */
+  --text-md: 1rem;       /* 16px - Body text */
+  --text-sm: 0.875rem;   /* 14px - Labels */
+  --text-xs: 0.75rem;    /* 12px - Captions */
+  
+  
+  /* ========== Spacing Scale ========== */
+  
+  --space-xs: 0.25rem;   /* 4px */
+  --space-sm: 0.5rem;    /* 8px */
+  --space-md: 1rem;      /* 16px */
+  --space-lg: 1.5rem;    /* 24px */
+  --space-xl: 2rem;      /* 32px */
+  --space-2xl: 3rem;     /* 48px */
+  
+  
+  /* ========== Component Styling ========== */
+  
+  /* Border Radius */
+  --border-radius: 8px;      /* Cards, containers */
+  --border-radius-sm: 4px;   /* Buttons, inputs */
+  
+  /* Transitions */
+  --transition: 200ms ease-in-out;
+  
+  /* Shadows (optional - for elevation effects) */
+  --shadow-sm: 0 2px 8px rgba(108, 99, 255, 0.1);
+  --shadow-md: 0 4px 16px rgba(108, 99, 255, 0.15);
+  --shadow-lg: 0 8px 32px rgba(108, 99, 255, 0.2);
+}

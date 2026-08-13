@@ -1,0 +1,19 @@
+# Web Framework
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+python-multipart==0.0.9
+
+# ML and Audio Processing
+torch==2.4.0
+torchaudio==2.4.0
+speechbrain==1.0.0
+numpy==1.26.4
+
+# Audio Format Conversion
+ffmpeg-python==0.2.0
+
+# WebSocket Support
+websockets==12.0
+
+# Scientific Computing
+scipy==1.13.1
