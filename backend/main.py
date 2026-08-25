@@ -15,7 +15,10 @@ from datetime import datetime
 
 import numpy as np
 import torch
-import sounddevice as sd
+try:
+    import sounddevice as sd
+except Exception:
+    sd = None
 from fastapi import FastAPI, File, UploadFile, Form, WebSocket, WebSocketDisconnect, HTTPException, Body
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -666,11 +669,13 @@ async def start_session_endpoint(
             )
 
     # Capture input device name via sounddevice
-    try:
-        device_info = sd.query_devices(kind='input')
-        device_name = device_info.get('name', 'Default Input Device')
-    except Exception:
-        device_name = "Default Input Device"
+    device_name = "Default Input Device"
+    if sd is not None:
+        try:
+            device_info = sd.query_devices(kind='input')
+            device_name = device_info.get('name', 'Default Input Device')
+        except Exception:
+            pass
 
     session_id = f"session_{int(time.time())}"
     target_speaker = speaker_id or config.enrollment.speaker_id

@@ -17,3 +17,7 @@ websockets==12.0
 
 # Scientific Computing
 scipy==1.13.1
+
+# Audio Input Device
+sounddevice==0.4.6
+

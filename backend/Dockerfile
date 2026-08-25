@@ -5,10 +5,12 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PORT=8000
 
-# Install system dependencies (FFmpeg for audio conversion, libsndfile1 for soundfile)
+# Install system dependencies (FFmpeg for audio conversion, libsndfile1 and portaudio for sounddevice/soundfile)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     libsndfile1 \
+    libportaudio2 \
+    portaudio19-dev \
     build-essential \
     curl \
  && rm -rf /var/lib/apt/lists/*
