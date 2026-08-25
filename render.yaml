@@ -17,17 +17,13 @@ services:
         value: "*"
       - key: PYTHONUNBUFFERED
         value: "1"
-    # Optional persistent disk for profiles (uncomment if using paid disk on Render)
-    # disk:
-    #   name: profiles-data
-    #   mountPath: /app/profiles
-    #   sizeGB: 1
 
   # ---------------------------------------------------------------------------
   # 2. Frontend Static Site (React / Vite)
   # ---------------------------------------------------------------------------
-  - type: static
+  - type: web
     name: voiceprint-frontend
+    runtime: static
     buildCommand: cd frontend && npm install && npm run build
     staticPublishPath: frontend/dist
     envVars:
