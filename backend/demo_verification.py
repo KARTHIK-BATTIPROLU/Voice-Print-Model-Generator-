@@ -1,6 +1,13 @@
 """Quick demo of ASTA3 verification"""
+import sys
 import requests
 from pathlib import Path
+
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
 
 print("=" * 80)
 print("ASTA3 VOICE BIOMETRIC - LIVE DEMONSTRATION")

@@ -1,0 +1,42 @@
+# Render Blueprint Specification for Voice Print Model Generator
+# See https://render.com/docs/blueprint-spec for details
+
+services:
+  # ---------------------------------------------------------------------------
+  # 1. Backend Web Service (Docker / FastAPI / PyTorch)
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: voiceprint-backend
+    runtime: docker
+    dockerContext: backend
+    dockerfilePath: backend/Dockerfile
+    plan: free
+    region: oregon
+    envVars:
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: PYTHONUNBUFFERED
+        value: "1"
+    # Optional persistent disk for profiles (uncomment if using paid disk on Render)
+    # disk:
+    #   name: profiles-data
+    #   mountPath: /app/profiles
+    #   sizeGB: 1
+
+  # ---------------------------------------------------------------------------
+  # 2. Frontend Static Site (React / Vite)
+  # ---------------------------------------------------------------------------
+  - type: static
+    name: voiceprint-frontend
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: frontend/dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: voiceprint-backend
+          property: host
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

@@ -18,6 +18,12 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         super().end_headers()
 
 if __name__ == '__main__':
+    import sys
+    if hasattr(sys.stdout, "reconfigure"):
+        try:
+            sys.stdout.reconfigure(encoding="utf-8")
+        except Exception:
+            pass
     with socketserver.TCPServer(("", PORT), MyHTTPRequestHandler) as httpd:
         print("=" * 80)
         print(f"🌐 Frontend Server Starting...")

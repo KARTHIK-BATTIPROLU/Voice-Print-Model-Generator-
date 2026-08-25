@@ -1,5 +1,12 @@
 """Create ASTA3 profile from the best cluster of similar samples"""
+import sys
 import torch
+
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
 import torchaudio
 import numpy as np
 from pathlib import Path

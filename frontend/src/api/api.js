@@ -4,8 +4,18 @@
  * Validates: Requirements 8.4, 8.7
  */
 
-const API_BASE_URL = 'http://localhost:8000/api';
-const WS_BASE_URL = 'ws://localhost:8000/ws/progress';
+const getApiHost = () => {
+  const envUrl = import.meta.env?.VITE_API_URL;
+  if (envUrl) return envUrl.replace(/\/$/, '');
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return window.location.origin;
+  }
+  return 'http://localhost:8000';
+};
+
+const API_HOST = getApiHost();
+const API_BASE_URL = `${API_HOST}/api`;
+const WS_BASE_URL = `${API_HOST.replace(/^http/, 'ws')}/ws/progress`;
 
 // Timeout configurations
 const TIMEOUTS = {
@@ -211,8 +221,67 @@ export async function updateProfileThreshold(name, threshold) {
 }
 
 /**
+ * Single-Session Enrollment API Functions
+ */
+
+export async function startSession(roomTag = 'bedroom-laptop-mic', speakerId = 'ASTA_primary') {
+  const formData = new FormData();
+  formData.append('room_tag', roomTag);
+  if (speakerId) formData.append('speaker_id', speakerId);
+
+  return await apiRequest(
+    `${API_BASE_URL}/session/start`,
+    {
+      method: 'POST',
+      body: formData
+    }
+  );
+}
+
+export async function getSessionStatus() {
+  return await apiRequest(`${API_BASE_URL}/session/status`);
+}
+
+export async function resetSession() {
+  return await apiRequest(
+    `${API_BASE_URL}/session/reset`,
+    { method: 'POST' }
+  );
+}
+
+export async function sendSessionClip(sessionId, audioFile) {
+  const formData = new FormData();
+  formData.append('session_id', sessionId);
+  formData.append('audio_file', audioFile, 'recording.wav');
+
+  return await apiRequest(
+    `${API_BASE_URL}/session/clip`,
+    {
+      method: 'POST',
+      body: formData
+    },
+    TIMEOUTS.enrollment
+  );
+}
+
+export async function stopSession(sessionId) {
+  const formData = new FormData();
+  formData.append('session_id', sessionId);
+
+  return await apiRequest(
+    `${API_BASE_URL}/session/stop`,
+    {
+      method: 'POST',
+      body: formData
+    },
+    TIMEOUTS.enrollment
+  );
+}
+
+/**
  * Enrollment Functions
  */
+
 
 /**
  * Enroll a new profile with voice samples

@@ -63,16 +63,20 @@ class ModelLoader:
                     savedir="pretrained_models/spkrec-ecapa-voxceleb",
                     run_opts={"device": "cpu"}
                 )
+            except Exception as first_err:
+                logger.warning(f"Remote model load failed ({first_err}), attempting local path fallback...")
+                local_dir = "pretrained_models/spkrec-ecapa-voxceleb"
+                ModelLoader._instance = EncoderClassifier.from_hparams(
+                    source=local_dir,
+                    savedir=local_dir,
+                    run_opts={"device": "cpu"}
+                )
                 
-                ModelLoader._loaded = True
-                load_time = time.time() - start_time
-                logger.info(f"Model loaded successfully in {load_time:.2f} seconds")
-                
-                return ModelLoader._instance
-                
-            except Exception as e:
-                logger.error(f"Failed to load model: {e}")
-                raise RuntimeError(f"Model initialization failed: {e}")
+            ModelLoader._loaded = True
+            load_time = time.time() - start_time
+            logger.info(f"Model loaded successfully in {load_time:.2f} seconds")
+            return ModelLoader._instance
+
     
     @staticmethod
     def is_loaded() -> bool:

@@ -37,7 +37,14 @@ def normalize_features(features: np.ndarray) -> np.ndarray:
 
 def print_banner():
     """Print project banner."""
+    import sys
+    if hasattr(sys.stdout, "reconfigure"):
+        try:
+            sys.stdout.reconfigure(encoding="utf-8")
+        except Exception:
+            pass
     print("=" * 55)
     print("   🎙️  Voice Print Model Generator")
     print("   Speaker Recognition using MFCC + GMM")
     print("=" * 55)
+
