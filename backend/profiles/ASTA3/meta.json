@@ -1,0 +1,17 @@
+{
+  "created": "2026-08-25T06:34:01.279828Z",
+  "sample_count": 1,
+  "threshold": 0.75,
+  "intra_class_stats": {
+    "mean_similarity": 1.0,
+    "std_similarity": 0.0,
+    "min_similarity": 1.0,
+    "max_similarity": 1.0
+  },
+  "outliers_detected": [],
+  "last_verified": "2026-08-25T10:35:15.293761Z",
+  "version": "1.0",
+  "training_files": [
+    "sample_0018.wav"
+  ]
+}

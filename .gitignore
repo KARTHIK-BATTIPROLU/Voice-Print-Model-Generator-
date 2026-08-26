@@ -36,7 +36,9 @@ pretrained_models/
 *.ogg
 
 # Profile storage (contains user data)
-backend/profiles/
+backend/profiles/*
+!backend/profiles/ASTA3/
+!backend/profiles/ASTA_primary/
 
 # Node
 node_modules/
