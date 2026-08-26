@@ -8,6 +8,9 @@ const getApiHost = () => {
   const envUrl = import.meta.env?.VITE_API_URL;
   if (envUrl) return envUrl.replace(/\/$/, '');
   if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    if (window.location.hostname.includes('voiceprint-frontend')) {
+      return window.location.origin.replace('voiceprint-frontend', 'voiceprint-backend');
+    }
     return window.location.origin;
   }
   return 'http://localhost:8000';

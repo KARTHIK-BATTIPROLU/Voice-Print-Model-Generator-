@@ -387,6 +387,9 @@
         const getApiUrl = () => {
             if (window.ENV_API_URL) return window.ENV_API_URL.replace(/\/$/, '');
             if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+                if (window.location.hostname.includes('voiceprint-frontend')) {
+                    return window.location.origin.replace('voiceprint-frontend', 'voiceprint-backend');
+                }
                 return window.location.origin;
             }
             return 'http://localhost:8000';
