@@ -2,6 +2,8 @@
 Model loader module for ECAPA-TDNN singleton instance.
 Validates: Requirements 4.1, 4.2, 4.3
 """
+import os
+import tempfile
 import threading
 import time
 import logging
@@ -57,18 +59,17 @@ class ModelLoader:
             logger.info(f"Loading ECAPA-TDNN model from {config.model_path}")
             start_time = time.time()
             
+            save_dir = os.path.join(tempfile.gettempdir(), "spkrec-ecapa-voxceleb")
             try:
                 ModelLoader._instance = EncoderClassifier.from_hparams(
                     source=config.model_path,
-                    savedir="pretrained_models/spkrec-ecapa-voxceleb",
+                    savedir=save_dir,
                     run_opts={"device": "cpu"}
                 )
             except Exception as first_err:
-                logger.warning(f"Remote model load failed ({first_err}), attempting local path fallback...")
-                local_dir = "pretrained_models/spkrec-ecapa-voxceleb"
+                logger.warning(f"Model load failed ({first_err}), attempting fallback load without savedir...")
                 ModelLoader._instance = EncoderClassifier.from_hparams(
-                    source=local_dir,
-                    savedir=local_dir,
+                    source=config.model_path,
                     run_opts={"device": "cpu"}
                 )
                 
