@@ -2,12 +2,16 @@
 fastapi==0.115.0
 uvicorn[standard]==0.30.6
 python-multipart==0.0.9
+requests==2.32.3
 
 # ML and Audio Processing
 torch==2.4.0
 torchaudio==2.4.0
 speechbrain==1.0.0
+huggingface-hub>=0.20.0
+soundfile>=0.12.1
 numpy==1.26.4
+pyyaml>=6.0
 
 # Audio Format Conversion
 ffmpeg-python==0.2.0
@@ -20,4 +24,3 @@ scipy==1.13.1
 
 # Audio Input Device
 sounddevice==0.4.6
-
