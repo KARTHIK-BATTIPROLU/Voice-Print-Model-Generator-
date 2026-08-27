@@ -522,6 +522,10 @@
 
                 const result = await response.json();
 
+                if (!response.ok || !result.success || typeof result.similarity_score !== 'number') {
+                    throw new Error(result.error || result.detail || 'Verification server returned an invalid response');
+                }
+
                 // Display result
                 displayResult(result);
 

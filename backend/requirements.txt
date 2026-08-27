@@ -8,7 +8,7 @@ requests==2.32.3
 torch==2.4.0
 torchaudio==2.4.0
 speechbrain==1.0.0
-huggingface-hub>=0.20.0
+huggingface-hub==0.21.4
 soundfile>=0.12.1
 numpy==1.26.4
 pandas>=2.0.0
