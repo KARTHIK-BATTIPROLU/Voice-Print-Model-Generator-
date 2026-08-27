@@ -74,12 +74,15 @@ app = FastAPI(
 )
 
 # Configure CORS middleware for frontend communication
+origins = config.server.cors_origins
+allow_all = "*" in origins or origins == ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=config.server.cors_origins,
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "DELETE", "PATCH"],
-    allow_headers=["Content-Type", "Authorization"],
+    allow_origins=["*"] if allow_all else origins,
+    allow_credentials=False if allow_all else True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Track application startup time
