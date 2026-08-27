@@ -429,6 +429,9 @@
 
                 // Populate profile dropdown
                 const profileSelect = document.getElementById('profileSelect');
+                const selectedVal = profileSelect.value;
+                profileSelect.innerHTML = '<option value="">Select Profile...</option>';
+                
                 profilesData.profiles.forEach(profile => {
                     const option = document.createElement('option');
                     option.value = profile.name;
@@ -436,8 +439,10 @@
                     profileSelect.appendChild(option);
                 });
 
-                // Auto-select ASTA3 if available
-                if (profilesData.profiles.find(p => p.name === 'ASTA3')) {
+                // Preserve selected value or auto-select ASTA3
+                if (selectedVal && Array.from(profileSelect.options).some(o => o.value === selectedVal)) {
+                    profileSelect.value = selectedVal;
+                } else if (profilesData.profiles.find(p => p.name === 'ASTA3')) {
                     profileSelect.value = 'ASTA3';
                 }
 
