@@ -34,5 +34,14 @@ services:
           property: host
     routes:
       - type: rewrite
+        source: /pitch-deck
+        destination: /pitch-deck.html
+      - type: rewrite
+        source: /pitchdeck
+        destination: /pitchdeck.html
+      - type: rewrite
+        source: /pitchdech
+        destination: /pitchdech.html
+      - type: rewrite
         source: /*
         destination: /index.html
