@@ -43,5 +43,17 @@ services:
         source: /pitchdech
         destination: /pitchdech.html
       - type: rewrite
+        source: /casestudy
+        destination: /casestudy.html
+      - type: rewrite
+        source: /case-study
+        destination: /casestudy.html
+      - type: rewrite
+        source: /report
+        destination: /report.html
+      - type: rewrite
+        source: /research
+        destination: /report.html
+      - type: rewrite
         source: /*
         destination: /index.html

@@ -22,7 +22,7 @@ function App() {
         modelLoaded: status.modelLoaded,
         profileCount: status.profileCount
       });
-    } catch (err) {
+    } catch {
       setHealth({
         status: 'offline',
         modelLoaded: false,

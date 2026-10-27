@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { startSession, sendSessionClip, stopSession, resetSession, getSessionStatus, connectProgressWebSocket } from '../api/api';
-import { ProgressRing } from '../components';
+import { startSession, sendSessionClip, resetSession, getSessionStatus } from '../api/api';
 import './Enroll.css';
 
 const SCRIPTED_PHRASES = [
@@ -36,8 +35,6 @@ export default function Enroll() {
   const [currentPhraseIdx, setCurrentPhraseIdx] = useState(0);
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploading, setUploading] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [progressMsg, setProgressMsg] = useState('');
   const [qualityWarning, setQualityWarning] = useState(null);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);

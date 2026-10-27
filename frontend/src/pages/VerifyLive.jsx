@@ -70,7 +70,7 @@ export default function VerifyLive() {
       let recorder;
       try {
         recorder = new MediaRecorder(stream, options);
-      } catch (e) {
+      } catch {
         // Fallback for browsers that don't support audio/webm
         recorder = new MediaRecorder(stream);
       }
@@ -127,7 +127,7 @@ export default function VerifyLive() {
     }
   };
 
-  const getProfileThreshold = () => {
+  const _getProfileThreshold = () => {
     const profile = profiles.find((p) => p.name === selectedProfile);
     return profile ? (profile.metadata.threshold || 0.7) : 0.7;
   };

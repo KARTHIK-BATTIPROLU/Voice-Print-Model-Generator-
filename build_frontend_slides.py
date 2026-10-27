@@ -1,0 +1,1723 @@
+"""
+Generates the pristine Deep Learning Lab Case Study presentation HTML
+and updates frontend/index.html and frontend/public/*.html
+"""
+import os
+import shutil
+
+html_template = r"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoicePrint · Deep Neural Speaker Verification Case Study</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #f1f5f9;
+        }
+
+        /* ASTA3 Main UI Container */
+        .container {
+            background: #1e293b;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            max-width: 820px;
+            width: 100%;
+            overflow: hidden;
+            border: 1px solid #334155;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4338ca 0%, #6366f1 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.1em;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.05em;
+        }
+
+        .deck-nav-btn {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.18);
+            color: white;
+            padding: 9px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px);
+            transition: all 0.2s ease;
+        }
+
+        .deck-nav-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .content {
+            padding: 36px;
+        }
+
+        .status-card {
+            background: #0f172a;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 28px;
+            border: 1px solid #334155;
+            border-left: 5px solid #6366f1;
+        }
+
+        .status-card h3 {
+            color: #f8fafc;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 9px 0;
+            border-bottom: 1px solid #1e293b;
+        }
+
+        .status-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-label {
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        .status-value {
+            color: #f1f5f9;
+            font-weight: 600;
+        }
+
+        .status-value.success {
+            color: #34d399;
+        }
+
+        .status-value.error {
+            color: #f87171;
+        }
+
+        .upload-section {
+            margin-bottom: 28px;
+        }
+
+        .upload-section h3 {
+            margin-bottom: 14px;
+            font-size: 1.2em;
+            color: #f8fafc;
+        }
+
+        .profile-select {
+            width: 100%;
+            padding: 12px 14px;
+            background: #0f172a;
+            color: #f1f5f9;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            font-size: 15px;
+            margin-bottom: 18px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-label {
+            display: block;
+            padding: 28px;
+            border: 2px dashed #475569;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.25s;
+            background: #0f172a;
+            color: #94a3b8;
+        }
+
+        .file-label:hover {
+            border-color: #6366f1;
+            color: #cbd5e1;
+            background: #131d35;
+        }
+
+        .file-label.has-file {
+            border-color: #34d399;
+            background: rgba(52, 211, 153, 0.08);
+            color: #34d399;
+        }
+
+        .verify-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .verify-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .verify-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .result-card {
+            margin-top: 24px;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .result-card.success {
+            background: rgba(52, 211, 153, 0.12);
+            border: 1px solid #059669;
+            display: block;
+        }
+
+        .result-card.error {
+            background: rgba(248, 113, 113, 0.12);
+            border: 1px solid #dc2626;
+            display: block;
+        }
+
+        .samples-info {
+            background: #0f172a;
+            border-radius: 8px;
+            padding: 16px;
+            border-left: 4px solid #38bdf8;
+            font-size: 14px;
+            color: #94a3b8;
+        }
+
+        .samples-info h4 {
+            color: #38bdf8;
+            margin-bottom: 6px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #94a3b8;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top: 3px solid #6366f1;
+            width: 28px;
+            height: 28px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 12px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* ============================================================== */
+        /* PITCH DECK & CASE STUDY FULLSCREEN OVERLAY                     */
+        /* ============================================================== */
+        .pitch-deck-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            background: #070b14;
+            color: #f1f5f9;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .pd-topbar {
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            background: rgba(15, 23, 42, 0.95);
+            border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+            font-size: 14px;
+            backdrop-filter: blur(10px);
+        }
+
+        .pd-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            color: #38bdf8;
+            letter-spacing: 0.5px;
+        }
+
+        .pd-top-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .pd-return-btn {
+            background: transparent;
+            color: #f1f5f9;
+            border: 1px solid rgba(56, 189, 248, 0.4);
+            padding: 5px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .pd-return-btn:hover {
+            background: rgba(56, 189, 248, 0.15);
+            border-color: #38bdf8;
+            color: #38bdf8;
+        }
+
+        .pd-viewport {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            cursor: default;
+            background: radial-gradient(circle at 50% 30%, #0d1527 0%, #060911 100%);
+        }
+
+        .pd-scaler {
+            width: 1280px;
+            height: 720px;
+            flex: none;
+            transform-origin: center center;
+            position: relative;
+        }
+
+        .pd-slide {
+            width: 1280px;
+            height: 720px;
+            box-sizing: border-box;
+            padding: 44px 64px 38px 64px;
+            display: none;
+            flex-direction: column;
+            background: radial-gradient(circle at 85% 0%, rgba(56, 189, 248, 0.12), transparent 45%),
+                        linear-gradient(160deg, #0e172a 0%, #090e1a 100%);
+            position: absolute;
+            inset: 0;
+            border-radius: 14px;
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(56, 189, 248, 0.18);
+        }
+
+        .pd-slide.active {
+            display: flex;
+        }
+
+        .pd-tag {
+            font-size: 12px;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: #38bdf8;
+            font-weight: 700;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pd-h {
+            font-size: 34px;
+            margin: 0 0 18px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #38bdf8;
+            width: fit-content;
+            color: #ffffff;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .pd-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .pd-slide-num {
+            position: absolute;
+            right: 48px;
+            bottom: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #64748b;
+        }
+
+        .pd-slide-ftr {
+            position: absolute;
+            left: 64px;
+            bottom: 20px;
+            font-size: 12px;
+            color: #64748b;
+            letter-spacing: 0.3px;
+        }
+
+        /* Slide Content Cards */
+        .pd-cards-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .pd-cards-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+        }
+
+        .pd-cards-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+        }
+
+        .pd-card {
+            background: rgba(22, 32, 54, 0.7);
+            border: 1px solid #2d3e63;
+            border-radius: 12px;
+            padding: 18px 22px;
+            backdrop-filter: blur(8px);
+        }
+
+        .pd-card.card-blue { border-color: rgba(56, 189, 248, 0.4); }
+        .pd-card.card-teal { border-color: rgba(45, 212, 191, 0.4); }
+        .pd-card.card-indigo { border-color: rgba(129, 140, 248, 0.4); }
+        .pd-card.card-amber { border-color: rgba(251, 191, 36, 0.4); }
+        .pd-card.card-rose { border-color: rgba(244, 63, 94, 0.4); }
+        .pd-card.card-emerald { border-color: rgba(52, 211, 153, 0.4); }
+
+        .pd-card h4 {
+            margin: 0 0 10px;
+            font-size: 19px;
+            font-weight: 700;
+            color: #38bdf8;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pd-card p {
+            margin: 0 0 8px;
+            font-size: 14.5px;
+            line-height: 1.45;
+            color: #cbd5e1;
+        }
+
+        .pd-card p:last-child {
+            margin-bottom: 0;
+        }
+
+        .pd-list {
+            margin: 0;
+            padding-left: 20px;
+            font-size: 14px;
+            line-height: 1.45;
+            color: #cbd5e1;
+        }
+
+        .pd-list li {
+            margin-bottom: 8px;
+        }
+
+        .pd-list li:last-child {
+            margin-bottom: 0;
+        }
+
+        .pd-list strong {
+            color: #f1f5f9;
+        }
+
+        .pd-math-box {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 14px;
+            color: #38bdf8;
+            margin: 8px 0;
+            line-height: 1.4;
+        }
+
+        .pd-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11.5px;
+            font-weight: 700;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+        }
+
+        .pd-badge-blue { background: rgba(56, 189, 248, 0.18); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.35); }
+        .pd-badge-green { background: rgba(52, 211, 153, 0.18); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.35); }
+        .pd-badge-amber { background: rgba(251, 191, 36, 0.18); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.35); }
+        .pd-badge-rose { background: rgba(244, 63, 94, 0.18); color: #f43f5e; border: 1px solid rgba(244, 63, 94, 0.35); }
+
+        .pd-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13.5px;
+            background: #0f172a;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #2d3e63;
+        }
+
+        .pd-table th {
+            text-align: left;
+            background: #1e293b;
+            color: #38bdf8;
+            padding: 10px 12px;
+            font-weight: 700;
+            border-bottom: 2px solid #38bdf8;
+            font-size: 13px;
+        }
+
+        .pd-table td {
+            padding: 9px 12px;
+            border-bottom: 1px solid #1e293b;
+            color: #cbd5e1;
+            line-height: 1.35;
+        }
+
+        .pd-table tr:nth-child(even) td {
+            background: rgba(30, 41, 59, 0.35);
+        }
+
+        .pd-table tr.highlight td {
+            background: rgba(56, 189, 248, 0.12);
+            color: #f8fafc;
+            font-weight: 600;
+        }
+
+        .pd-table tr.highlight td:first-child {
+            color: #38bdf8;
+        }
+
+        .pd-callout {
+            font-size: 16px;
+            padding: 14px 20px;
+            border-radius: 10px;
+            background: rgba(56, 189, 248, 0.12);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            color: #f1f5f9;
+            line-height: 1.45;
+        }
+
+        /* Title Slide Layout */
+        .pd-title-slide {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: 20px;
+        }
+
+        .pd-title-main {
+            font-size: 80px;
+            margin: 6px 0 14px;
+            background: linear-gradient(90deg, #38bdf8, #818cf8, #34d399);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            line-height: 1.05;
+        }
+
+        .pd-sub {
+            font-size: 22px;
+            color: #cbd5e1;
+            margin: 0 auto 28px;
+            max-width: 980px;
+            line-height: 1.4;
+            font-weight: 400;
+        }
+
+        .pd-meta {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+            font-size: 16px;
+            color: #94a3b8;
+            flex-wrap: wrap;
+        }
+
+        .pd-meta strong {
+            color: #34d399;
+        }
+
+        .pd-btn-action {
+            background: linear-gradient(135deg, #38bdf8 0%, #6366f1 100%);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(56, 189, 248, 0.35);
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .pd-btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(56, 189, 248, 0.5);
+        }
+
+        /* Controls Bottom Bar */
+        .pd-controls-bar {
+            height: 48px;
+            background: rgba(15, 23, 42, 0.95);
+            border-top: 1px solid rgba(56, 189, 248, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            position: relative;
+        }
+
+        .pd-progress-track {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .pd-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #38bdf8, #34d399);
+            width: 7.14%;
+            transition: width 0.25s ease;
+        }
+
+        .pd-btn-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .pd-ctrl-btn {
+            background: #1e293b;
+            color: #f1f5f9;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            border-radius: 6px;
+            padding: 5px 14px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .pd-ctrl-btn:hover:not(:disabled) {
+            background: #38bdf8;
+            color: #0f172a;
+            border-color: #38bdf8;
+        }
+
+        .pd-ctrl-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            border-color: #334155;
+        }
+
+        .pd-slide-counter {
+            font-size: 13px;
+            color: #38bdf8;
+            font-weight: 600;
+        }
+
+        @media print {
+            @page {
+                size: 1280px 720px;
+                margin: 0;
+            }
+            body.in-deck {
+                background: white !important;
+            }
+            .pd-topbar, .pd-controls-bar {
+                display: none !important;
+            }
+            .pitch-deck-overlay {
+                position: static !important;
+                display: block !important;
+                background: none !important;
+            }
+            .pd-viewport, .pd-scaler {
+                width: 100% !important;
+                height: auto !important;
+                transform: none !important;
+            }
+            .pd-slide {
+                display: flex !important;
+                position: relative !important;
+                page-break-after: always;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- MAIN LIVE SYSTEM DASHBOARD -->
+    <div class="container" id="mainAppContainer">
+        <div class="header">
+            <h1>🎤 VoicePrint Engine</h1>
+            <p>Deep Neural Speaker Verification System</p>
+            <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                <a href="/pitch-deck" onclick="goToDeck(event)" class="deck-nav-btn">🔬 Deep Learning Lab Presentation (Slide Deck)</a>
+                <a href="/casestudy" onclick="goToCaseStudy(event)" class="deck-nav-btn" style="background: rgba(56, 189, 248, 0.25); border-color: #38bdf8;">📊 ECAPA-TDNN Case Study</a>
+                <a href="/report" class="deck-nav-btn" style="background: rgba(16, 185, 129, 0.25); border-color: #10b981;">📄 Research Reports & Papers</a>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- System Status -->
+            <div class="status-card">
+                <h3>System Status</h3>
+                <div id="systemStatus">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading neural inference status...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Verification Section -->
+            <div class="upload-section">
+                <h3>Verify Audio Sample Against Enrolled Profile</h3>
+                
+                <select class="profile-select" id="profileSelect">
+                    <option value="">Select Enrolled Profile...</option>
+                </select>
+
+                <div class="file-input-wrapper">
+                    <input type="file" id="audioFile" class="file-input" accept=".wav,audio/wav">
+                    <label for="audioFile" class="file-label" id="fileLabel">
+                        📁 Select WAV Audio Utterance (16 kHz PCM)<br>
+                        <small>Supported: .wav speech samples</small>
+                    </label>
+                </div>
+
+                <button class="verify-btn" id="verifyBtn" disabled>
+                    🔍 Verify Speaker Embedding
+                </button>
+            </div>
+
+            <!-- Result Card -->
+            <div class="result-card" id="resultCard">
+                <!-- Results dynamically injected here -->
+            </div>
+
+            <!-- Samples Info -->
+            <div class="samples-info">
+                <h4>ℹ️ Verification Evaluation Samples</h4>
+                <p>
+                    <strong>Genuine Enrolled Samples (Match Expected):</strong> sample_0062.wav, sample_0060.wav, sample_0067.wav, sample_0061.wav (Cosine Score &gt; 0.70).<br>
+                    <strong>Impostor Samples (Reject Expected):</strong> sample_0004.wav, sample_0005.wav (Cosine Score &lt; 0.45).
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- PITCH DECK & CASE STUDY FULLSCREEN OVERLAY -->
+    <div id="pitchDeckContainer" class="pitch-deck-overlay" style="display: none;">
+        <div class="pd-topbar">
+            <div class="pd-brand">
+                <span>🎙️ VoicePrint</span>
+                <span style="opacity: 0.4;">|</span>
+                <span style="font-weight: 400; opacity: 0.9; color: #f1f5f9;">Deep Neural Speaker Verification Case Study</span>
+                <span class="pd-badge pd-badge-blue">AANN LAB</span>
+            </div>
+            <div class="pd-top-actions">
+                <a href="/report" class="pd-return-btn" style="background: rgba(16, 185, 129, 0.15); border-color: #10b981; color: #34d399;">📄 Research Papers</a>
+                <a href="/VoicePrint_Complete_Academic_Project_Report.docx" download class="pd-return-btn" style="background: rgba(99, 102, 241, 0.15); border-color: #6366f1; color: #a5b4fc;">📥 Download DOCX</a>
+                <a href="/VoicePrint_DeepLearning_CaseStudy.pptx" download class="pd-return-btn" style="background: rgba(56, 189, 248, 0.15); border-color: #38bdf8; color: #38bdf8;">📥 Download PPTX</a>
+                <a href="/" onclick="goToApp(event)" class="pd-return-btn">← Back to Biometric Engine</a>
+            </div>
+        </div>
+
+        <div class="pd-viewport" id="pdViewport" onclick="handleViewportClick(event)">
+            <div class="pd-scaler" id="pdScaler">
+                
+                <!-- Slide 1: Title -->
+                <section class="pd-slide active" data-slide="0">
+                    <div class="pd-title-slide">
+                        <span class="pd-badge pd-badge-blue" style="font-size: 14px; padding: 6px 18px; margin-bottom: 16px;">ADVANCED ARTIFICIAL NEURAL NETWORKS (AANN) · LAB CASE STUDY</span>
+                        <h1 class="pd-title-main">VoicePrint</h1>
+                        <p class="pd-sub">Case Study in Deep Neural Speaker Verification &amp; Latent Hyperspherical Embeddings</p>
+                        <div class="pd-meta">
+                            <span>Author: <strong>BATTIPROLU KARTHIK</strong></span>
+                            <span>•</span>
+                            <span>Model: <strong>SpeechBrain ECAPA-TDNN (192-dim, AAM-Softmax)</strong></span>
+                            <span>•</span>
+                            <span>Inference: <strong>100% Offline Local CPU</strong></span>
+                        </div>
+                    </div>
+                    <span class="pd-slide-ftr">VoicePrint · Advanced Artificial Neural Networks Lab Case Study</span>
+                    <span class="pd-slide-num">1 / 14</span>
+                </section>
+
+                <!-- Slide 2: Problem Formulation -->
+                <section class="pd-slide" data-slide="1">
+                    <div class="pd-tag">Biometric Problem Formulation &amp; Task Taxonomy</div>
+                    <h2 class="pd-h">Speaker Recognition: Identification vs. Verification Paradigms</h2>
+                    <div class="pd-body">
+                        <div class="pd-cards-2">
+                            <div class="pd-card card-blue">
+                                <h4>1. Identification vs. Open-Set Verification</h4>
+                                <ul class="pd-list">
+                                    <li><strong>Closed-Set Identification (1:N):</strong> Given speech X, classify speaker s* in {s1...sN}. Classic multi-class softmax classification.</li>
+                                    <li><strong>Open-Set Verification (1:1):</strong> Binary hypothesis testing for a claimed identity c_ID:<br>
+                                        • H0: Speaker is genuine match (X_test matches c_ID)<br>
+                                        • H1: Speaker is an impostor (X_test does not match c_ID)
+                                    </li>
+                                    <li><strong>Open-Set Challenge:</strong> Real-world test identities were <em>never seen</em> during neural network training (S_test ∩ S_train = ∅). Softmax outputs cannot predict them; network must output generalizable metric representations.</li>
+                                </ul>
+                            </div>
+                            <div class="pd-card card-teal">
+                                <h4>2. Acoustic Variabilities &amp; Objective</h4>
+                                <ul class="pd-list">
+                                    <li><strong>Intra-Speaker Variance:</strong> High acoustic drift within the same individual caused by emotional state, respiratory illness, vocal strain, microphone distance, and ambient reverberation.</li>
+                                    <li><strong>Inter-Speaker Variance:</strong> Different individuals may share similar pitch, formant bands, or regional accents. Deep model must isolate subtle glottal and vocal tract geometry.</li>
+                                    <li><strong>Mathematical Objective:</strong> Learn mapping f_θ: X ↦ z in S^(d-1) minimizing intra-speaker distance while maximizing inter-speaker margin m.</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="pd-callout">
+                            <strong>Zero-Cloud Imperative:</strong> Voice carries unique biometric markers. Offline CPU inference eliminates cloud transmission privacy breaches, eavesdropping, and recurring API costs.
+                        </div>
+                    </div>
+                    <span class="pd-slide-ftr">VoicePrint · Advanced Artificial Neural Networks Lab Case Study</span>
+                    <span class="pd-slide-num">2 / 14</span>
+                </section>
+
+                <!-- Slide 3: Acoustic Front-End -->
+                <section class="pd-slide" data-slide="2">
+                    <div class="pd-tag">Acoustic Signal Processing Front-End</div>
+                    <h2 class="pd-h">Front-End Feature Extraction: Raw Waveform to Log-Mel Spectrogram</h2>
+                    <div class="pd-body">
+                        <div class="pd-cards-3">
+                            <div class="pd-card card-blue">
+                                <h4>1. Framing &amp; STFT</h4>
+                                <p><strong>Sampling Rate:</strong> 16,000 Hz (16 kHz mono PCM)</p>
+                                <p><strong>Frame Window:</strong> N = 400 samples (25 ms)</p>
+                                <p><strong>Frame Shift:</strong> H = 160 samples (10 ms, 60% overlap)</p>
+                                <p><strong>Hamming Window:</strong></p>
+                                <div class="pd-math-box">w(n) = 0.54 - 0.46·cos(2πn/(N-1))</div>
+                                <p>Short-Time Fourier Transform transforms 1D time-series into frequency bins:</p>
+                                <div class="pd-math-box">X(m, k) = Σ x(mH + n) w(n) e^(-j 2πkn/N)</div>
+                            </div>
+                            <div class="pd-card card-teal">
+                                <h4>2. 80-Channel Mel Filterbank</h4>
+                                <p><strong>Psychoacoustic Mel Scale:</strong> Maps linear Hz to non-linear cochlear pitch perception:</p>
+                                <div class="pd-math-box">m = 2595 · log10(1 + f / 700)</div>
+                                <p><strong>80 Triangular Filters:</strong> Spans 0 to 8000 Hz, concentrating spectral resolution in low-frequency vocal formants (F1, F2, F3).</p>
+                                <p><strong>Log Dynamic Compression:</strong></p>
+                                <div class="pd-math-box">S_mel(t, f) = log(1 + |X_mel(t, f)|)</div>
+                                <p>Simulates logarithmic ear response to sound intensity.</p>
+                            </div>
+                            <div class="pd-card card-amber">
+                                <h4>3. Temporal CMVN</h4>
+                                <p><strong>Cepstral Mean &amp; Variance Normalization:</strong> Performed along the time axis T per filter channel f:</p>
+                                <div class="pd-math-box">Ŝ(t, f) = [S(t, f) - μ_f] / σ_f</div>
+                                <p><strong>Channel Invariance:</strong> Strips stationary convolutional room noise, microphone coloration, and recording volume differences.</p>
+                                <p><strong>Output Tensor:</strong></p>
+                                <div class="pd-math-box">Shape: (Batch, T_frames, 80)</div>
+                                <p>Fed directly into dilated 1D frame convolutions.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="pd-slide-ftr">VoicePrint · Advanced Artificial Neural Networks Lab Case Study</span>
+                    <span class="pd-slide-num">3 / 14</span>
+                </section>
+
+                <!-- Slide 4: Existing Solutions vs ECAPA-TDNN -->
+                <section class="pd-slide" data-slide="3">
+                    <div class="pd-tag">Literature Review &amp; Architectural Evolution</div>
+                    <h2 class="pd-h">Evolution of Speaker Recognition: Existing Solutions vs. ECAPA-TDNN</h2>
+                    <div class="pd-body">
+                        <table class="pd-table">
+                            <thead>
+                                <tr>
+                                    <th>Architecture Era</th>
+                                    <th>Feature Representation</th>
+                                    <th>Temporal Receptive Field</th>
+                                    <th>VoxCeleb1 EER</th>
+                                    <th>Key Architectural Limitation</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>1. GMM-UBM</strong> (Reynolds 2000)</td>
+                                    <td>512–2048 Gaussian components via MAP adaptation</td>
+                                    <td>Static frame-level (no temporal context)</td>
+                                    <td>~15.20%</td>
+                                    <td>Shallow density estimation; vulnerable to noise &amp; channel shift</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>2. i-Vector + PLDA</strong> (Dehak 2011)</td>
+                                    <td>Low-rank Factor Analysis: M = m + Tw (w in R^400)</td>
+                                    <td>Global utterance Baum-Welch statistics</td>
+                                    <td>~5.39%</td>
+                                    <td>Linear subspace projection fails on non-linear acoustic manifolds</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>3. TDNN x-vector</strong> (Snyder 2018)</td>
+                                    <td>1D Dilated Convolutions + Mean/Std Pooling</td>
+                                    <td>Context: 15 frames (~150 ms)</td>
+                                    <td>~3.12%</td>
+                                    <td>Uniform temporal pooling; lacks channel-wise feature recalibration</td>
+                                </tr>
+                                <tr class="highlight">
+                                    <td><strong>4. ECAPA-TDNN</strong> (VoicePrint)</td>
+                                    <td>Dilated Res2Net + SE + MFA + Channel-Attentive Pooling</td>
+                                    <td>Multi-Scale Hierarchical Context</td>
+                                    <td>0.98%</td>
+                                    <td>State-of-the-Art balance: 6.2M parameters, sub-120ms CPU latency</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="pd-callout">
+                            <strong>Technological Breakthrough:</strong> ECAPA-TDNN achieves a <strong>&gt; 68% relative error reduction</strong> over baseline x-vectors by incorporating multi-scale dilated convolutions, Squeeze-and-Excitation channel gating, and channel-dependent attentive pooling.
+                        </div>
+                    </div>
+                    <span class="pd-slide-ftr">VoicePrint · Advanced Artificial Neural Networks Lab Case Study</span>
+                    <span class="pd-slide-num">4 / 14</span>
+                </section>
+
+                <!-- Slide 5: ECAPA-TDNN Core: Dilated Convolutions & Res2Net -->
+                <section class="pd-slide" data-slide="4">
+                    <div class="pd-tag">Detailed Neural Architecture</div>
+                    <h2 class="pd-h">ECAPA-TDNN: 1D Dilated Convolutions &amp; Res2Net Multi-Scale Blocks</h2>
+                    <div class="pd-body">
+                        <div class="pd-cards-2">
+                            <div class="pd-card card-blue">
+                                <h4>1. 1D Temporal Dilated Convolutions</h4>
+                                <ul class="pd-list">
+                                    <li><strong>Receptive Field Expansion:</strong> Standard convolutions require deep networks to capture long temporal contexts. Dilation introduces gaps (d - 1) between kernel taps:
+                                        <div class="pd-math-box">RF = 1 + Σ_{i=1}^L (k_i - 1) · d_i</div>
+                                    </li>
+                                    <li><strong>Exponential Growth:</strong> Initial Conv1D uses k=5, d=1. Subsequent residual blocks utilize dilation factors d in {2, 3, 4}, expanding effective context beyond 150 ms without increasing weight counts.</li>
+                                    <li><strong>Efficiency:</strong> Avoids sequential RNN/LSTM unrolling bottlenecks and quadratic O(T^2) memory scaling of standard self-attention Transformers.</li>
+                                </ul>
+                            </div>
+                            <div class="pd-card card-teal">
+                                <h4>2. Res2Net Hierarchical Multi-Scale Features</h4>
+                                <ul class="pd-list">
+                                    <li><strong>Channel Sub-Grouping:</strong> Feature map (C=512) is split into s=8 sub-groups x = [x1, x2, ..., xs], where each xi in R^(C/s).</li>
+                                    <li><strong>Hierarchical Residual Flow:</strong>
+                                        <div class="pd-math-box">y_1 = x_1;  y_i = Conv1D(x_i + y_{i-1}, k=3, d)</div>
+                                    </li>
+                                    <li><strong>Combinatorial Scales:</strong> Each sub-group yi acquires a wider effective receptive field than y_{i-1}, allowing simultaneous extraction of micro-phonemic bursts (10-20 ms) alongside extended vowel formants (100-250 ms).</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="pd-slide-ftr">VoicePrint · Advanced Artificial Neural Networks Lab Case Study</span>
+                    <span class="pd-slide-num">5 / 14</span>
+                </section>
+
+                <!-- Slide 6: Channel Attention & MFA -->
+                <section class="pd-slide" data-slide="5">
+                    <div class="pd-tag">Channel Attention &amp; Feature Propagation</div>
+                    <h2 class="pd-h">Channel Recalibration (SE) &amp; Multi-Layer Feature Aggregation (MFA)</h2>
+                    <div class="pd-body">
+                        <div class="pd-cards-2">
+                            <div class="pd-card card-blue">
+                                <h4>1. Squeeze-and-Excitation (SE) Residual Blocks</h4>
+                                <ul class="pd-list">
+                                    <li><strong>Channel Inter-Dependencies:</strong> Frequency channels carry unequal speaker identity cues. SE explicitly recalibrates channel contributions.</li>
+                                    <li><strong>Squeeze (Global Average Pooling):</strong>
+                                        <div class="pd-math-box">z_c = (1 / T) Σ_{t=1}^T u_c(t) in R^C</div>
+                                    </li>
+                                    <li><strong>Excitation (Bottleneck MLP, ratio r=8):</strong>
+                                        <div class="pd-math-box">s = σ( W_2 · ReLU(W_1 · z) ) in (0, 1)^C</div>
+                                    </li>
+                                    <li><strong>Channel Scaling:</strong> u_tilde_{c, t} = s_c · u_{c, t}. Dynamically amplifies speaker-distinctive formants while suppressing noise bands.</li>
+                                </ul>
+                            </div>
+                            <div class="pd-card card-indigo">
+                                <h4>2. Multi-Layer Feature Aggregation (MFA)</h4>
+                                <ul class="pd-list">
+                                    <li><strong>Shallow vs. Deep Complementarity:</strong> Early layers retain fine-grained acoustic textures (pitch, glottal pulse). Deeper layers learn abstract speaker identities.</li>
+                                    <li><strong>Multi-Layer Concatenation:</strong> Aggregates output feature maps of all 3 residual stages:
+                                        <div class="pd-math-box">h_MFA(t) = [ h_1(t) ; h_2(t) ; h_3(t) ] in R^(3C × T)</div>
+                                    </li>
+                                    <li><strong>Dense 1×1 Projection:</strong> Reduces 1536 channels back to C=512, providing rich hierarchical input to temporal pooling.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="pd-slide-ftr">VoicePrint · Advanced Artificial Neural Networks Lab Case Study</span>
+                    <span class="pd-slide-num">6 / 14</span>
+                </section>
+
+                <!-- Slide 7: Attentive Statistics Pooling -->
+                <section class="pd-slide" data-slide="6">
+                    <div class="pd-tag">Temporal Pooling Mechanism</div>
+                    <h2 class="pd-h">Channel-Dependent Attentive Statistics Pooling (Ch-ASP)</h2>
+                    <div class="pd-body">
+                        <div class="pd-card card-indigo" style="padding: 14px 20px;">
+                            <h4 style="margin-bottom: 6px;">Mathematical Formulation of Ch-ASP</h4>
+                            <div class="pd-cards-2" style="gap: 12px;">
+                                <div>
+                                    <p><strong>1. Attention Energy Computation:</strong></p>
+                                    <div class="pd-math-box">e_{c, t} = v_c^T · f( W · h_t + b )</div>
+                                    <p><strong>2. Softmax Temporal Normalization:</strong></p>
+                                    <div class="pd-math-box">α_{c, t} = exp(e_{c, t}) / Σ_{τ=1}^T exp(e_{c, τ})</div>
+                                </div>
+                                <div>
+                                    <p><strong>3. Channel Weighted Mean:</strong></p>
+                                    <div class="pd-math-box">μ_tilde_c = Σ_{t=1}^T α_{c, t} · h_{c, t}</div>
+                                    <p><strong>4. Channel Weighted Standard Deviation:</strong></p>
+                                    <div class="pd-math-box">σ_tilde_c = √[ Σ_{t=1}^T α_{c, t} · (h_{c, t} - μ_tilde_c)^2 ]</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pd-cards-2">
+                            <div class="pd-card card-rose">
+                                <h4>Flaw of Uniform Temporal Pooling</h4>
+                                <ul class="pd-list">
+                                    <li>Uniform weighting (1/T) treats silence, coughs, and phonetically rich vowels identically.</li>
+                                    <li>Short pauses severely skew global speaker representation.</li>
+                                </ul>
+                            </div>
+                            <div class="pd-card card-emerald">
+                                <h4>Ch-ASP Advantage in VoicePrint</h4>
+                                <ul class="pd-list">
+                                    <li>Each channel c focuses attention on frames relevant to its frequency sub-band.</li>
+                                    <li>Concatenates p = [ μ_tilde ; σ_tilde ] in R^1024, projected to compact 192-dim embedding.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="pd-slide-ftr">VoicePrint · Advanced Artificial Neural Networks Lab Case Study</span>
+                    <span class="pd-slide-num">7 / 14</span>
+                </section>
+
+                <!-- Slide 8: Deep Metric Learning (AAM-Softmax) -->
+                <section class="pd-slide" data-slide="7">
+                    <div class="pd-tag">Deep Metric Learning &amp; Loss Functions</div>
+                    <h2 class="pd-h">Hyperspherical Metric Learning: AAM-Softmax (ArcFace)</h2>
+                    <div class="pd-body">
+                        <div class="pd-cards-2">
+                            <div class="pd-card card-rose">
+                                <h4>1. Why Softmax Cross-Entropy Fails</h4>
+                                <div class="pd-math-box">L_CE = -log [ e^(W_y^T x + b_y) / Σ_j e^(W_j^T x + b_j) ]</div>
+                                <ul class="pd-list">
+                                    <li><strong>Separable but Not Discriminative:</strong> Standard cross-entropy separates training classes linearly in Euclidean space without enforcing compact intra-class variance.</li>
+                                    <li><strong>Zero Geometric Margin:</strong> Does not enforce an angular buffer zone between classes.</li>
+                                    <li><strong>Open-Set Vulnerability:</strong> Unseen speaker embeddings drift unpredictably into unconstrained gaps, producing false positives.</li>
+                                </ul>
+                            </div>
+                            <div class="pd-card card-emerald">
+                                <h4>2. Additive Angular Margin Softmax (AAM)</h4>
+                                <div class="pd-math-box">L_AAM = -(1/N) Σ log [ e^(s·cos(θ_y + m)) / ( e^(s·cos(θ_y + m)) + Σ_{j≠y} e^(s·cos θ_j) ) ]</div>
+                                <ul class="pd-list">
+                                    <li><strong>Hypersphere Projection:</strong> Normalizes ||x_i|| = 1 and ||W_j|| = 1, constraining features to the unit hypersphere S^191.</li>
+                                    <li><strong>Hyperparameters:</strong> Scale s = 30, angular margin m = 0.20 rad.</li>
+                                    <li><strong>Geometric Impact:</strong> Forces intra-speaker compactness and guarantees geodesic separation between speakers.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="pd-slide-ftr">VoicePrint · Advanced Artificial Neural Networks Lab Case Study</span>
+                    <span class="pd-slide-num">8 / 14</span>
+                </section>
+
+                <!-- Slide 9: Vector Space Inference & Decision Theory -->
+                <section class="pd-slide" data-slide="8">
+                    <div class="pd-tag">Inference &amp; Decision Theory</div>
+                    <h2 class="pd-h">Cosine Similarity Scoring, Thresholding (τ=0.70) &amp; Error Metrics</h2>
+                    <div class="pd-body">
+                        <div class="pd-cards-3">
+                            <div class="pd-card card-blue">
+                                <h4>1. Cosine Distance Metric</h4>
+                                <div class="pd-math-box">Score = (x_test · c) / ( ||x_test|| · ||c|| )</div>
+                                <ul class="pd-list">
+                                    <li>Evaluates cosine angle cos θ in [-1, 1] between test embedding and enrolled centroid.</li>
+                                    <li>Unit normalization enables blazing fast dot product: x^T c.</li>
+                                    <li>Inference execution: &lt; 0.1 ms on CPU.</li>
+                                </ul>
+                            </div>
+                            <div class="pd-card card-teal">
+                                <h4>2. Decision Boundary (τ = 0.70)</h4>
+                                <div class="pd-math-box">Verdict = Score ≥ 0.70 ? VERIFIED : REJECT</div>
+                                <ul class="pd-list">
+                                    <li><strong>Higher τ (&gt; 0.80):</strong> High security (banking); extremely low FAR, but higher FRR for hoarse voices.</li>
+                                    <li><strong>Lower τ (&lt; 0.60):</strong> Convenience; lower FRR, but elevated risk of impostor acceptance.</li>
+                                    <li><strong>τ = 0.70:</strong> Empirically calibrated EER operating point.</li>
+                                </ul>
+                            </div>
+                            <div class="pd-card card-amber">
+                                <h4>3. Error Metrics (FAR, FRR, EER)</h4>
+                                <ul class="pd-list">
+                                    <li><strong>False Acceptance Rate (FAR):</strong><br>
+                                        P(Score ≥ τ | Impostor)
+                                    </li>
+                                    <li><strong>False Rejection Rate (FRR):</strong><br>
+                                        P(Score &lt; τ | Target)
+                                    </li>
+                                    <li><strong>Equal Error Rate (EER):</strong><br>
+                                        Operating point where FAR(τ*) = FRR(τ*). ECAPA-TDNN achieves <strong>0.98%</strong> on VoxCeleb1.
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="pd-slide-ftr">VoicePrint · Advanced Artificial Neural Networks Lab Case Study</span>
+                    <span class="pd-slide-num">9 / 14</span>
+                </section>
+
+                <!-- Slide 10: Empirical Benchmarks & Ablation -->
+                <section class="pd-slide" data-slide="9">
+                    <div class="pd-tag">Empirical Evaluation &amp; Benchmarking</div>
+                    <h2 class="pd-h">Performance Benchmarks on VoxCeleb1 &amp; Module Ablation Analysis</h2>
+                    <div class="pd-body">
+                        <div class="pd-cards-2">
+                            <div>
+                                <table class="pd-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Model Architecture</th>
+                                            <th>Params</th>
+                                            <th>VoxCeleb1 EER</th>
+                                            <th>CPU Latency</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>i-Vector + PLDA</td>
+                                            <td>4.2M</td>
+                                            <td>5.39%</td>
+                                            <td>850 ms</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Standard TDNN (x-vector)</td>
+                                            <td>4.4M</td>
+                                            <td>3.12%</td>
+                                            <td>190 ms</td>
+                                        </tr>
+                                        <tr>
+                                            <td>ResNet-34 (Heavy)</td>
+                                            <td>21.8M</td>
+                                            <td>1.34%</td>
+                                            <td>380 ms</td>
+                                        </tr>
+                                        <tr class="highlight">
+                                            <td><strong>ECAPA-TDNN (VoicePrint)</strong></td>
+                                            <td><strong>6.2M</strong></td>
+                                            <td><strong>0.98%</strong></td>
+                                            <td><strong>115 ms</strong></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div class="pd-card card-emerald" style="margin-top: 14px;">
+                                    <p><strong>Real-Time Factor (RTF):</strong> <strong>0.038</strong> on single CPU core (processes 3s audio in 115 ms).</p>
+                                    <p><strong>Memory Footprint:</strong> 26.4 MB total model weights.</p>
+                                </div>
+                            </div>
+                            <div class="pd-card card-teal">
+                                <h4>Component Ablation Study</h4>
+                                <ul class="pd-list">
+                                    <li><strong>Baseline Standard TDNN:</strong> 3.12% EER<br><small style="color: #94a3b8;">Uniform temporal pooling, simple Conv1D layers.</small></li>
+                                    <li><strong>+ Res2Net Multi-Scale Blocks:</strong> 2.15% EER <span class="pd-badge pd-badge-green">-31.1% rel</span><br><small style="color: #94a3b8;">Hierarchical feature splitting captures multi-scale acoustics.</small></li>
+                                    <li><strong>+ Squeeze-and-Excitation (SE):</strong> 1.68% EER <span class="pd-badge pd-badge-green">-21.9% rel</span><br><small style="color: #94a3b8;">Channel recalibration amplifies vocal formants.</small></li>
+                                    <li><strong>+ Multi-Layer Aggregation (MFA):</strong> 1.32% EER <span class="pd-badge pd-badge-green">-21.4% rel</span><br><small style="color: #94a3b8;">Fuses shallow timbre with deep identity representations.</small></li>
+                                    <li><strong>+ Attentive Pooling (Ch-ASP):</strong> <strong>0.98% EER</strong> <span class="pd-badge pd-badge-green">-25.8% rel</span><br><small style="color: #94a3b8;">Frame importance weighted per channel.</small></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="pd-slide-ftr">VoicePrint · Advanced Artificial Neural Networks Lab Case Study</span>
+                    <span class="pd-slide-num">10 / 14</span>
+                </section>
+
+                <!-- Slide 11: System Implementation -->
+                <section class="pd-slide" data-slide="10">
+                    <div class="pd-tag">System Implementation &amp; Engineering</div>
+                    <h2 class="pd-h">Centroid Enrollment, Outlier Filtering &amp; Production Architecture</h2>
+                    <div class="pd-body">
+                        <div class="pd-cards-2">
+                            <div class="pd-card card-blue">
+                                <h4>1. Centroid Enrollment &amp; Outlier Rejection</h4>
+                                <ul class="pd-list">
+                                    <li><strong>Multi-Sample Enrollment:</strong> User speaks K ≥ 3 utterances to sample acoustic variability.</li>
+                                    <li><strong>Pairwise Cosine Matrix:</strong> Computes K × K similarity matrix S_{i, j} = cos(e_i, e_j).</li>
+                                    <li><strong>Outlier Distance:</strong> d_i = 1 - (1/(K-1)) Σ_{j≠i} S_{i, j}.</li>
+                                    <li><strong>IQR Statistical Filtering:</strong> Purges clips with d_i &gt; Q_3 + 1.5 · IQR or S_{i, median} &lt; 0.65 (coughs, background noise).</li>
+                                    <li><strong>Normalized Centroid Calculation:</strong>
+                                        <div class="pd-math-box">c = (Σ_{k in valid} e_k) / || Σ_{k in valid} e_k ||_2</div>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="pd-card card-teal">
+                                <h4>2. Full-Stack Production Architecture</h4>
+                                <ul class="pd-list">
+                                    <li><strong>PyTorch + SpeechBrain Engine:</strong> Loads pretrained <code>spkrec-ecapa-voxceleb</code> in evaluation mode with zero gradient overhead.</li>
+                                    <li><strong>FastAPI High-Speed Service:</strong> Async REST endpoints (<code>/api/verify/live</code>, <code>/api/verify/batch</code>, <code>/api/enroll</code>).</li>
+                                    <li><strong>Atomic Local Vector Store:</strong> Enrolled profiles persisted as NumPy <code>.npy</code> files + JSON metadata (sample count, timestamp, SNR).</li>
+                                    <li><strong>Responsive Web Client:</strong> 16 kHz WAV capture via Web Audio API, dynamic meters, and real-time confidence gauges.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="pd-slide-ftr">VoicePrint · Advanced Artificial Neural Networks Lab Case Study</span>
+                    <span class="pd-slide-num">11 / 14</span>
+                </section>
+
+                <!-- Slide 12: Adversarial Threats & Anti-Spoofing -->
+                <section class="pd-slide" data-slide="11">
+                    <div class="pd-tag">Security &amp; Adversarial Robustness</div>
+                    <h2 class="pd-h">Adversarial Threats: Replay Attacks, Synthetic Deepfakes &amp; Defense</h2>
+                    <div class="pd-body">
+                        <div class="pd-cards-2">
+                            <div class="pd-card card-rose">
+                                <h4>1. Threat Vectors in Voice Biometrics</h4>
+                                <ul class="pd-list">
+                                    <li><strong>Replay Attacks:</strong> Unauthorized physical or digital playback of a recorded victim's voice via smartphone or speaker.</li>
+                                    <li><strong>Neural TTS Deepfakes:</strong> Text-to-Speech synthesis (VITS, FastSpeech2) generating arbitrary sentences in target timbre.</li>
+                                    <li><strong>Voice Conversion (VC):</strong> Real-time latent mapping altering attacker voice to mimic victim's formant signatures.</li>
+                                    <li><strong>Adversarial Noise:</strong> Imperceptible high-frequency acoustic perturbations δ designed to shift embeddings across the threshold.</li>
+                                </ul>
+                            </div>
+                            <div class="pd-card card-emerald">
+                                <h4>2. Multi-Tier Countermeasures</h4>
+                                <ul class="pd-list">
+                                    <li><strong>ASVspoof Front-End Classifiers:</strong> Integrated anti-spoofing networks (AASIST / RawNet2) analyzing spectral phase abnormalities and vocoder artifacts.</li>
+                                    <li><strong>Dynamic Challenge-Response:</strong> Prompting unpredictable randomized phrase challenges (e.g. "Speak: Echo-7-9-Delta") verified via on-device ASR.</li>
+                                    <li><strong>Acoustic RIR Detection:</strong> Detecting secondary room impulse responses (RIR) and loudspeaker enclosure resonances.</li>
+                                    <li><strong>Encrypted Vector Vaults:</strong> Homomorphic vector encryption enabling cosine matching without decrypting raw biometric centroids.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="pd-slide-ftr">VoicePrint · Advanced Artificial Neural Networks Lab Case Study</span>
+                    <span class="pd-slide-num">12 / 14</span>
+                </section>
+
+                <!-- Slide 13: Live Verification Walkthrough -->
+                <section class="pd-slide" data-slide="12">
+                    <div class="pd-tag">System Verification &amp; Demonstration</div>
+                    <h2 class="pd-h">End-to-End Verification Flow &amp; Web Interface Walkthrough</h2>
+                    <div class="pd-body">
+                        <div class="pd-cards-4">
+                            <div class="pd-card card-blue">
+                                <h4>1. Capture</h4>
+                                <p>Browser microphone stream or 16 kHz WAV upload. Automatic RMS normalization and clipping filtering.</p>
+                            </div>
+                            <div class="pd-card card-teal">
+                                <h4>2. Embed</h4>
+                                <p>STFT → 80-Mel → ECAPA-TDNN forward pass extracts 192-dim unit vector in 115 ms.</p>
+                            </div>
+                            <div class="pd-card card-indigo">
+                                <h4>3. Match</h4>
+                                <p>Dot product: Score = z^T c_profile. Evaluated against calibrated threshold τ = 0.70.</p>
+                            </div>
+                            <div class="pd-card card-emerald">
+                                <h4>4. Verdict</h4>
+                                <p>Instant visual pass/fail badge, confidence percentage, cosine similarity score, and audit log.</p>
+                            </div>
+                        </div>
+                        <div class="pd-card card-blue">
+                            <h4>Implemented Platform Capabilities in Workspace:</h4>
+                            <ul class="pd-list">
+                                <li><strong>Pre-Enrolled Benchmark Profiles:</strong> Tested against live profiles (e.g., <code>ASTA3</code>, <code>ASTA_primary</code>) demonstrating high margin separation (&gt; 0.82 genuine vs &lt; 0.38 impostor).</li>
+                                <li><strong>Dual Client Architecture:</strong> Standalone lightweight HTML5 interface and full React SPA deployment for maximum platform flexibility.</li>
+                                <li><strong>Fast Batch Evaluation:</strong> Verifies multi-clip directories with statistical similarity distributions in seconds.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <span class="pd-slide-ftr">VoicePrint · Advanced Artificial Neural Networks Lab Case Study</span>
+                    <span class="pd-slide-num">13 / 14</span>
+                </section>
+
+                <!-- Slide 14: Conclusion & Future Horizons -->
+                <section class="pd-slide" data-slide="13">
+                    <div class="pd-tag">Conclusion &amp; Future Research Directions</div>
+                    <h2 class="pd-h">Case Study Conclusions, Academic Insights &amp; Future Horizons</h2>
+                    <div class="pd-body">
+                        <div class="pd-cards-2">
+                            <div class="pd-card card-blue">
+                                <h4>1. Summary of Contributions</h4>
+                                <ul class="pd-list">
+                                    <li><strong>Architectural Synthesis:</strong> Demonstrated how combining 1D dilated convolutions, Res2Net multi-scale features, Squeeze-and-Excitation, and Attentive Statistics Pooling yields sub-1.0% EER on VoxCeleb1.</li>
+                                    <li><strong>Hyperspherical Metric Space:</strong> AAM-Softmax (ArcFace) loss provides mathematical guarantees of geodesic separation, enabling zero-shot open-set verification.</li>
+                                    <li><strong>Local Feasibility:</strong> 6.2M parameters and 115 ms CPU latency prove that deep neural biometric authentication does not require cloud GPU clusters.</li>
+                                </ul>
+                            </div>
+                            <div class="pd-card card-teal">
+                                <h4>2. Future Research Horizons</h4>
+                                <ul class="pd-list">
+                                    <li><strong>Self-Supervised Acoustic Models:</strong> Integrating foundation representations (WavLM, HuBERT, Wav2Vec 2.0) into the front-end acoustic encoder.</li>
+                                    <li><strong>INT8 Quantization:</strong> Exporting ONNX Runtime / TensorRT INT8 models for sub-10MB mobile and IoT edge deployment.</li>
+                                    <li><strong>Bayesian Centroid Tracking:</strong> Online Bayesian updating of speaker centroids to gracefully adapt to gradual vocal tract aging.</li>
+                                    <li><strong>Open Academic Discussion:</strong> Thank you! Open for questions and discussion.</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div style="text-align: center; margin-top: 10px; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;">
+                            <a href="/report" class="pd-btn-action" style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #34d399;">📄 Read Academic Reports</a>
+                            <a href="/VoicePrint_Complete_Academic_Project_Report.docx" download class="pd-btn-action" style="background: #4338ca; border: 1px solid #6366f1;">📥 Download Report (.docx)</a>
+                            <a href="/VoicePrint_DeepLearning_CaseStudy.pptx" download class="pd-btn-action">📥 Download PowerPoint (.pptx)</a>
+                            <button onclick="goToApp(event)" class="pd-btn-action" style="background: #1e293b; border: 1px solid #38bdf8;">← Back to System</button>
+                        </div>
+                    </div>
+                    <span class="pd-slide-ftr">VoicePrint · Advanced Artificial Neural Networks Lab Case Study</span>
+                    <span class="pd-slide-num">14 / 14</span>
+                </section>
+
+            </div>
+        </div>
+
+        <!-- CONTROLS BAR -->
+        <div class="pd-controls-bar">
+            <div class="pd-progress-track">
+                <div class="pd-progress-fill" id="pdProgressFill"></div>
+            </div>
+            <div class="pd-btn-group">
+                <button class="pd-ctrl-btn" id="pdPrevBtn" onclick="prevSlide()">‹ Prev</button>
+                <button class="pd-ctrl-btn" id="pdNextBtn" onclick="nextSlide()">Next ›</button>
+            </div>
+            <div class="pd-slide-counter" id="pdSlideCounter">Slide 1 of 14</div>
+            <div class="pd-btn-group">
+                <button class="pd-ctrl-btn" onclick="toggleFullscreen()" title="Fullscreen (F)">⛶ Fullscreen</button>
+                <button class="pd-ctrl-btn" onclick="window.print()" title="Export PDF">📄 Print PDF</button>
+                <button class="pd-ctrl-btn" onclick="goToApp(event)" title="Back to System">✕ Exit</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN SYSTEM LOGIC & SLIDE ROUTER SCRIPT -->
+    <script>
+        const getApiUrl = () => {
+            if (window.ENV_API_URL) return window.ENV_API_URL.replace(/\/$/, '');
+            if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+                if (window.location.hostname.includes('voiceprint-frontend')) {
+                    return window.location.origin.replace('voiceprint-frontend', 'voiceprint-backend');
+                }
+                return window.location.origin;
+            }
+            return 'http://localhost:8000';
+        };
+        const API_URL = getApiUrl();
+        let selectedFile = null;
+
+        // Load system status
+        async function loadSystemStatus() {
+            try {
+                const response = await fetch(`${API_URL}/api/health`);
+                const health = await response.json();
+
+                const profilesResponse = await fetch(`${API_URL}/api/profiles`);
+                const profilesData = await profilesResponse.json();
+
+                const statusHtml = `
+                    <div class="status-item">
+                        <span class="status-label">Server Status:</span>
+                        <span class="status-value success">${health.status.toUpperCase()}</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Neural Model Loaded:</span>
+                        <span class="status-value success">${health.model_loaded ? 'YES (ECAPA-TDNN 192-dim)' : 'NO'}</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Enrolled Profiles:</span>
+                        <span class="status-value">${health.profile_count}</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Uptime:</span>
+                        <span class="status-value">${Math.floor(health.uptime)} seconds</span>
+                    </div>
+                `;
+
+                document.getElementById('systemStatus').innerHTML = statusHtml;
+
+                // Populate profile dropdown
+                const profileSelect = document.getElementById('profileSelect');
+                const selectedVal = profileSelect.value;
+                profileSelect.innerHTML = '<option value="">Select Enrolled Profile...</option>';
+                
+                profilesData.profiles.forEach(profile => {
+                    const option = document.createElement('option');
+                    option.value = profile.name;
+                    option.textContent = `${profile.name} (${profile.metadata.sample_count} enrolled samples)`;
+                    profileSelect.appendChild(option);
+                });
+
+                if (selectedVal && Array.from(profileSelect.options).some(o => o.value === selectedVal)) {
+                    profileSelect.value = selectedVal;
+                } else if (profilesData.profiles.find(p => p.name === 'ASTA3')) {
+                    profileSelect.value = 'ASTA3';
+                }
+
+            } catch (error) {
+                document.getElementById('systemStatus').innerHTML = `
+                    <div class="status-item">
+                        <span class="status-label">Status:</span>
+                        <span class="status-value error">OFFLINE - Backend server not responding</span>
+                    </div>
+                    <p style="color: #f87171; margin-top: 10px; font-size: 13px;">
+                        Ensure FastAPI backend is running at ${API_URL}
+                    </p>
+                `;
+            }
+        }
+
+        // Handle file selection
+        document.getElementById('audioFile').addEventListener('change', function(e) {
+            selectedFile = e.target.files[0];
+            const fileLabel = document.getElementById('fileLabel');
+            const verifyBtn = document.getElementById('verifyBtn');
+            const profileSelect = document.getElementById('profileSelect');
+
+            if (selectedFile) {
+                fileLabel.classList.add('has-file');
+                fileLabel.innerHTML = `
+                    ✅ ${selectedFile.name}<br>
+                    <small>Size: ${(selectedFile.size / 1024).toFixed(2)} KB</small>
+                `;
+                
+                if (profileSelect.value) {
+                    verifyBtn.disabled = false;
+                }
+            } else {
+                fileLabel.classList.remove('has-file');
+                fileLabel.innerHTML = `
+                    📁 Select WAV Audio Utterance (16 kHz PCM)<br>
+                    <small>Supported: .wav speech samples</small>
+                `;
+                verifyBtn.disabled = true;
+            }
+        });
+
+        // Handle profile selection
+        document.getElementById('profileSelect').addEventListener('change', function() {
+            const verifyBtn = document.getElementById('verifyBtn');
+            if (this.value && selectedFile) {
+                verifyBtn.disabled = false;
+            } else {
+                verifyBtn.disabled = true;
+            }
+        });
+
+        // Handle verification
+        document.getElementById('verifyBtn').addEventListener('click', async function() {
+            const profileSelect = document.getElementById('profileSelect');
+            const resultCard = document.getElementById('resultCard');
+            const verifyBtn = document.getElementById('verifyBtn');
+
+            if (!selectedFile || !profileSelect.value) return;
+
+            verifyBtn.disabled = true;
+            verifyBtn.textContent = '⏳ Computing Embedding...';
+            resultCard.style.display = 'none';
+
+            try {
+                const formData = new FormData();
+                formData.append('audio', selectedFile);
+                formData.append('profile_name', profileSelect.value);
+
+                const response = await fetch(`${API_URL}/api/verify/live`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    const isVerified = result.verified;
+                    resultCard.className = `result-card ${isVerified ? 'success' : 'error'}`;
+                    resultCard.innerHTML = `
+                        <h4 style="margin-bottom: 8px; color: ${isVerified ? '#34d399' : '#f87171'};">
+                            ${isVerified ? '✅ SPEAKER VERIFIED' : '❌ SPEAKER REJECTED'}
+                        </h4>
+                        <p><strong>Enrolled Profile:</strong> ${result.profile_name || profileSelect.value}</p>
+                        <p><strong>Cosine Similarity Score:</strong> ${(result.score !== undefined ? result.score : result.similarity_score || 0).toFixed(4)}</p>
+                        <p><strong>Calibrated Decision Threshold (τ):</strong> ${result.threshold || 0.70}</p>
+                        <p><strong>Confidence:</strong> ${((result.confidence || 0) * 100).toFixed(1)}%</p>
+                    `;
+                } else {
+                    resultCard.className = 'result-card error';
+                    resultCard.innerHTML = `
+                        <h4 style="color: #f87171;">Verification Error</h4>
+                        <p>${result.detail || 'Failed to verify audio sample.'}</p>
+                    `;
+                }
+            } catch (err) {
+                resultCard.className = 'result-card error';
+                resultCard.innerHTML = `
+                    <h4 style="color: #f87171;">Connection Error</h4>
+                    <p>Could not connect to verification server.</p>
+                `;
+            } finally {
+                verifyBtn.disabled = false;
+                verifyBtn.textContent = '🔍 Verify Speaker Embedding';
+            }
+        });
+
+        // Initialize status
+        loadSystemStatus();
+        setInterval(loadSystemStatus, 10000);
+
+        // ==========================================
+        // SLIDE ROUTING & PRESENTATION CONTROLLER
+        // ==========================================
+        let currentSlideIdx = 0;
+        const totalSlides = 14;
+
+        function updateRoute() {
+            const path = window.location.pathname.toLowerCase();
+            const hash = window.location.hash.toLowerCase();
+            const isPitch = path.includes('pitch') || hash.includes('pitch') || 
+                            path.includes('casestudy') || hash.includes('casestudy') ||
+                            path.includes('case-study') || hash.includes('case-study') ||
+                            path.includes('presentation') || hash.includes('presentation');
+
+            const deckContainer = document.getElementById('pitchDeckContainer');
+            const mainContainer = document.getElementById('mainAppContainer');
+
+            if (isPitch) {
+                if (deckContainer) deckContainer.style.display = 'flex';
+                if (mainContainer) mainContainer.style.display = 'none';
+                document.body.classList.add('in-deck');
+                document.title = 'VoicePrint · Deep Neural Speaker Verification Case Study';
+                resizeDeck();
+                showSlide(currentSlideIdx);
+            } else {
+                if (deckContainer) deckContainer.style.display = 'none';
+                if (mainContainer) mainContainer.style.display = 'block';
+                document.body.classList.remove('in-deck');
+                document.title = 'VoicePrint · Biometric Engine';
+            }
+        }
+
+        function goToDeck(e) {
+            if (e) e.preventDefault();
+            history.pushState(null, '', '/pitch-deck');
+            updateRoute();
+        }
+
+        function goToCaseStudy(e) {
+            if (e) e.preventDefault();
+            history.pushState(null, '', '/casestudy');
+            updateRoute();
+        }
+
+        function goToApp(e) {
+            if (e) e.preventDefault();
+            history.pushState(null, '', '/');
+            updateRoute();
+        }
+
+        function showSlide(idx) {
+            currentSlideIdx = Math.max(0, Math.min(totalSlides - 1, idx));
+            const slides = document.querySelectorAll('.pd-slide');
+            slides.forEach((s, i) => {
+                if (i === currentSlideIdx) {
+                    s.classList.add('active');
+                } else {
+                    s.classList.remove('active');
+                }
+            });
+
+            // Update counter
+            const counter = document.getElementById('pdSlideCounter');
+            if (counter) counter.textContent = `Slide ${currentSlideIdx + 1} of ${totalSlides}`;
+
+            // Update progress
+            const progress = document.getElementById('pdProgressFill');
+            if (progress) progress.style.width = `${((currentSlideIdx + 1) / totalSlides) * 100}%`;
+
+            // Update buttons
+            const prevBtn = document.getElementById('pdPrevBtn');
+            const nextBtn = document.getElementById('pdNextBtn');
+            if (prevBtn) prevBtn.disabled = currentSlideIdx === 0;
+            if (nextBtn) nextBtn.disabled = currentSlideIdx === totalSlides - 1;
+        }
+
+        function nextSlide() {
+            if (currentSlideIdx < totalSlides - 1) {
+                showSlide(currentSlideIdx + 1);
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlideIdx > 0) {
+                showSlide(currentSlideIdx - 1);
+            }
+        }
+
+        function toggleFullscreen() {
+            const deck = document.getElementById('pitchDeckContainer');
+            if (!document.fullscreenElement) {
+                if (deck.requestFullscreen) deck.requestFullscreen();
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        }
+
+        function resizeDeck() {
+            const scaler = document.getElementById('pdScaler');
+            if (!scaler) return;
+            const w = window.innerWidth;
+            const h = window.innerHeight - 100; // minus topbar and bottombar
+            const scale = Math.min(w / 1280, h / 720);
+            scaler.style.transform = `scale(${Math.max(0.2, scale)})`;
+        }
+
+        function handleViewportClick(e) {
+            if (e.target.closest('button') || e.target.closest('a') || e.target.closest('.pd-btn-action')) {
+                return;
+            }
+            const rect = e.currentTarget.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            if (clickX > rect.width * 0.6) {
+                nextSlide();
+            } else if (clickX < rect.width * 0.4) {
+                prevSlide();
+            }
+        }
+
+        window.addEventListener('resize', resizeDeck);
+        window.addEventListener('popstate', updateRoute);
+        window.addEventListener('hashchange', updateRoute);
+
+        window.addEventListener('keydown', (e) => {
+            if (!document.body.classList.contains('in-deck')) return;
+            if (['ArrowRight', 'PageDown', ' '].includes(e.key)) {
+                e.preventDefault();
+                nextSlide();
+            } else if (['ArrowLeft', 'PageUp'].includes(e.key)) {
+                e.preventDefault();
+                prevSlide();
+            } else if (e.key === 'Home') {
+                e.preventDefault();
+                showSlide(0);
+            } else if (e.key === 'End') {
+                e.preventDefault();
+                showSlide(totalSlides - 1);
+            } else if (e.key.toLowerCase() === 'f') {
+                toggleFullscreen();
+            } else if (e.key === 'Escape') {
+                if (!document.fullscreenElement) {
+                    goToApp();
+                }
+            }
+        });
+
+        // Initialize route immediately
+        updateRoute();
+    </script>
+</body>
+</html>
+"""
+
+def update_all_presentations():
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    root_dir = os.path.abspath(os.path.join(base_dir, '..')) if os.path.basename(base_dir) == 'frontend' else base_dir
+    frontend_dir = os.path.join(root_dir, 'frontend')
+    public_dir = os.path.join(frontend_dir, 'public')
+    os.makedirs(public_dir, exist_ok=True)
+
+    # 1. Update frontend/index.html
+    index_path = os.path.join(frontend_dir, 'index.html')
+    with open(index_path, 'w', encoding='utf-8') as f:
+        f.write(html_template)
+    print(f"Updated {index_path}")
+
+    # 2. Update frontend/public/pitch-deck.html, pitchdeck.html, pitchdech.html, casestudy.html
+    targets = [
+        'pitch-deck.html',
+        'pitchdeck.html',
+        'pitchdech.html',
+        'casestudy.html'
+    ]
+    for target in targets:
+        target_path = os.path.join(public_dir, target)
+        with open(target_path, 'w', encoding='utf-8') as f:
+            f.write(html_template)
+        print(f"Updated {target_path}")
+
+    # 3. Copy PPTX and DOCX into public directory so they can be directly downloaded
+    pptx_src = os.path.join(root_dir, 'VoicePrint_DeepLearning_CaseStudy.pptx')
+    if os.path.exists(pptx_src):
+        pptx_dst = os.path.join(public_dir, 'VoicePrint_DeepLearning_CaseStudy.pptx')
+        shutil.copy2(pptx_src, pptx_dst)
+        print(f"Copied PPTX to {pptx_dst}")
+
+    for docx_name in ['VoicePrint_Research_Paper_1.docx', 'VoicePrint_Research_Paper_2.docx', 'VoicePrint_Complete_Academic_Project_Report.docx']:
+        d_src = os.path.join(root_dir, docx_name)
+        if os.path.exists(d_src):
+            d_dst = os.path.join(public_dir, docx_name)
+            shutil.copy2(d_src, d_dst)
+            print(f"Copied {docx_name} to {d_dst}")
+
+if __name__ == '__main__':
+    update_all_presentations()
